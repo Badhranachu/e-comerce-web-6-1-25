@@ -1,0 +1,160 @@
+<section>
+  <div class="head text-center">
+    <h1>All Products</h1>
+    <!-- Display success message if available -->
+    {{#if successMessage}}
+      <p class="text-success text-center mt-3">{{successMessage}}</p>
+    {{/if}}
+  </div>
+  <div class="container mt-5">
+    <div class="row">
+      {{#each products}} <!-- Loop through the products array -->
+        <!-- Enclose each product card with an anchor tag for routing -->
+        <a href="/each-product/{{this._id}}" class="product-link">
+          <div class="card product-card">
+            <!-- Display product image -->
+            <img 
+              class="card-img-top" 
+              src="/product-images/{{this._id}}.jpg" 
+              alt="Product Image" 
+              onerror="this.onerror=null;this.src='/product-images/placeholder.jpg';">
+            <div class="card-body">
+              <h3 class="card-title">{{this.name}}</h3>
+              <h4> ₹ {{this.price}}</h4>
+              <p class="card-text">{{this.category}}</p>
+
+              <!-- Show "Out of Stock" label if product is inactive -->
+              {{#if this.isActive}}
+                <div class="d-flex justify-content-between">
+                  <!-- Pass userId along with productId and productName -->
+                  <a href="/addtocart?productId={{this._id}}&productName={{this.name}}&userId={{user._id}}" style="text-decoration: none; color: black;">
+                    <button class="add-to-wishlist">ADD TO CART</button>
+                  </a>
+                </div>
+              {{else}}
+                <p class="out-of-stock">Out of Stock</p>
+              {{/if}}
+
+              <!-- Show "Already in Cart" if the product is already in the cart -->
+              {{#if successMessage}}
+                <p class="text-warning mt-2">Already in your cart</p>
+              {{/if}}
+            </div>
+          </div>
+        </a>
+      {{/each}}
+    </div>
+  </div>
+</section>
+
+<style>
+  .text-success {
+    color: #28a745; /* Green color for success messages */
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+
+  .product-link {
+    display: block; /* Makes the anchor a block element */
+    text-decoration: none; /* Remove underline from the link */
+    color: black; /* Ensures the text color remains black */
+  }
+
+  .product-link:hover,
+  .product-link:focus,
+  .product-link:active {
+    color: black; /* Prevent blue color on hover/focus */
+    outline: none; /* Remove outline */
+  }
+
+  .product-card {
+    margin-bottom: 2rem; /* Space between cards */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    border-radius: 10px; /* Rounded corners */
+    overflow: hidden; /* Ensures content stays inside the card */
+    text-align: center; /* Center aligns text */
+    width: 250px; /* Fixed width */
+    height: 450px; /* Fixed height */
+    display: flex;
+    flex-direction: column; /* Stack content vertically */
+    justify-content: space-between; /* Distribute space evenly */
+    align-items: center; /* Center content horizontally */
+    transition: transform 0.2s ease-in-out; /* Smooth hover effect */
+  }
+
+  .product-card img {
+    width: 20rem; /* Image takes 90% of the card width */
+    height: 15rem; /* Fixed height for the image */
+    object-fit: contain; /* Ensures the image fits inside without stretching */
+    margin: auto; /* Centers the image horizontally */
+    padding-top: 10px; /* Adds padding above the image */
+    border-radius: 5px; /* Rounded corners for the image */
+  }
+
+  .product-card .card-body {
+    padding: 10px;
+    flex-grow: 1; /* Allows the card-body to adjust dynamically */
+  }
+
+  .product-card .card-title {
+    font-size: 1rem; /* Consistent font size */
+    margin-bottom: 0.5rem; /* Space below the title */
+  }
+
+  .product-card .card-text {
+    font-size: 0.9rem; /* Adjust description text size */
+    color: #666; /* Subtle text color */
+  }
+
+  .product-card .out-of-stock {
+    color: #ff0000; /* Red color for Out of Stock */
+    font-weight: bold;
+    margin-top: 10px;
+  }
+
+  .product-card .add-to-cart-link {
+    display: block; /* Makes sure the anchor behaves as a block-level element */
+  }
+
+  .product-card .add-to-wishlist {
+    background-color: #e6b800; /* Dark Yellow background */
+    color: black; /* Black text */
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+    width: 100%; 
+    margin-top: 10px;
+  }
+
+  .product-card .add-to-wishlist:hover {
+    background-color: #cc9a00; /* Darker Yellow on hover */
+  }
+
+  .product-card:hover {
+    transform: scale(1.02); /* Slight zoom effect on hover */
+  }
+
+  .row {
+    justify-content: center; /* Center the cards within the row */
+    gap: 1rem; /* Adds spacing between cards */
+  }
+
+  a {
+    text-decoration: none !important; /* Force no underline */
+    color: inherit; /* Inherit the color from parent */
+  }
+
+  .d-flex {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .d-flex .btn {
+    width: 45%; /* Make buttons take equal width */
+  }
+</style>

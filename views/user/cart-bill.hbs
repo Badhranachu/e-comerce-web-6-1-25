@@ -1,0 +1,48 @@
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Cart Bill</h2>
+
+  <div class="table-responsive">
+    <table class="table table-bordered text-center">
+      <thead class="thead-dark">
+        <tr>
+          <th>Product Name</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each cartDetails}}
+        <tr>
+          <td>{{this.name}}</td>
+          <td>₹{{this.price}}</td>
+          <td>{{this.quantity}}</td>
+          <td>₹{{this.total}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+      <tfoot>
+        <tr class="table-primary">
+          <td colspan="3" class="text-right"><strong>Grand Total:</strong></td>
+          <td>₹{{totalPrice}}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<style>
+  .container {
+    max-width: 800px;
+  }
+  table {
+    width: 100%;
+    margin: auto;
+  }
+  .text-center {
+    text-align: center;
+  }
+  .table-responsive {
+    margin-top: 20px;
+  }
+</style>

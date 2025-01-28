@@ -1,0 +1,81 @@
+<div class="container mt-5">
+  <h1 class="text-center text-primary mb-5">Your Orders</h1>
+
+  {{#if orders.length}}
+  <div class="row">
+    {{#each orders}}
+    <a href="/each-product/{{productId}}" class="col-md-4 mb-4">
+      <div class="card shadow-lg rounded-lg border-light overflow-hidden">
+        <img src="{{productImage}}" alt="{{productName}}" class="card-img-top" style="height: 250px; object-fit: cover;">
+        <div class="card-body">
+          <h5 class="card-title text-primary">{{productName}}</h5>
+          <p class="card-text"><strong>Price:</strong> ₹{{totalPrice}}</p>
+          <p class="card-text"><strong>Quantity:</strong> {{quantity}}</p>
+          <p class="card-text"><strong>Payment Method:</strong> {{paymentMethod}}</p>
+          <p class="card-text"><strong>Status:</strong> {{orderStatus}}</p>
+          <p class="card-text"><strong>Order Date:</strong> {{orderDateFormatted}}</p>
+        </div>
+        <div class="card-footer text-muted text-center">
+          <small>View Details</small>
+        </div>
+      </div>
+    </a>
+    {{/each}}
+  </div>
+  {{else}}
+  <p class="text-center text-muted">No confirmed orders found.</p>
+  {{/if}}
+</div>
+
+<style>
+  /* Ensure the link inside the card has no text-decoration and remains black */
+  a {
+    text-decoration: none;
+    color: black;
+  }
+
+  /* Prevent hover underline effect on the link within the card */
+  a:hover {
+    text-decoration: none;
+  }
+
+  /* Card hover effect */
+  .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+    color: black; /* Maintain text color */
+  }
+
+  /* Ensure no underline appears when hovering over the card */
+  .card:hover a {
+    text-decoration: none;
+  }
+
+  .card-img-top {
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .card-footer {
+    background-color: #f8f9fa;
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
+
+  .card-title {
+    font-weight: 600;
+  }
+
+  .text-primary {
+    color: #007bff !important;
+  }
+
+  .container {
+    max-width: 1200px;
+  }
+</style>
