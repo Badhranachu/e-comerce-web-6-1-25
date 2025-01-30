@@ -198,6 +198,7 @@ router.get("/all-users", (req, res) => {
 });
 
 
+<<<<<<< HEAD
 router.get('/reactivate-product/:id', (req, res) => {
   const productId = req.params.id;
 
@@ -214,6 +215,8 @@ router.get('/reactivate-product/:id', (req, res) => {
 });
 
 
+=======
+>>>>>>> 0716428c1e8858e0d80e087156e661d93a2f21fd
 
 
 

@@ -1,9 +1,16 @@
 <section>
+<<<<<<< HEAD
   <section>
   <div class="container">
     <!-- Admin Product Management -->
     <div class="row justify-content-end">
       <div class="col-auto text-end">
+=======
+  <div class="container">
+    <!-- Admin Product Management -->
+    <div class="row">
+      <div class="col text-end">
+>>>>>>> 0716428c1e8858e0d80e087156e661d93a2f21fd
         <a href="/admin/addproducts" class="btn btn-success mt-3">Add Products</a>
       </div>
     </div>
@@ -82,7 +89,63 @@
   </div>
 </section>
 
+<<<<<<< HEAD
 </section>
+=======
+<section>
+  <div class="head text-center">
+    <h1>User - All Products</h1>
+    <!-- Display success message if available -->
+    {{#if successMessage}}
+      <p class="text-success text-center mt-3">{{successMessage}}</p>
+    {{/if}}
+  </div>
+
+  <div class="container mt-5">
+    <div class="row">
+      {{#each products}} <!-- Loop through the products array -->
+        <a href="/each-product/{{this._id}}" class="product-link">
+          <div class="card product-card">
+            <img 
+              class="card-img-top" 
+              src="/product-images/{{this._id}}.jpg" 
+              alt="Product Image" 
+              onerror="this.onerror=null;this.src='/product-images/placeholder.jpg';">
+            <div class="card-body">
+              <h3 class="card-title">{{this.name}}</h3>
+              <h4> ₹ {{this.price}}</h4>
+              <p class="card-text">{{this.category}}</p>
+
+              {{#if this.isActive}}
+                <div class="d-flex justify-content-between">
+                  <a href="/addtocart?productId={{this._id}}&productName={{this.name}}&userId={{user._id}}" style="text-decoration: none; color: black;">
+                    <button class="add-to-wishlist">ADD TO CART</button>
+                  </a>
+                </div>
+              {{else}}
+                <p class="out-of-stock">Out of Stock</p>
+              {{/if}}
+
+              {{#if successMessage}}
+                <p class="text-warning mt-2">Already in your cart</p>
+              {{/if}}
+            </div>
+
+            <div class="card-footer text-center">
+              <a href="/admin/toggle-status/{{this._id}}">
+                <button class="btn toggle-status-btn {{#if this.isActive}}btn-success{{else}}btn-danger{{/if}}">
+                  {{#if this.isActive}}Active{{else}}Inactive{{/if}}
+                </button>
+              </a>
+            </div>
+          </div>
+        </a>
+      {{/each}}
+    </div>
+  </div>
+</section>
+
+>>>>>>> 0716428c1e8858e0d80e087156e661d93a2f21fd
 <style>
   /* Styles for admin table */
   .text-success {

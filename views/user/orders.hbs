@@ -6,7 +6,11 @@
     {{#each orders}}
     <a href="/each-product/{{productId}}" class="col-md-4 mb-4">
       <div class="card shadow-lg rounded-lg border-light overflow-hidden">
+<<<<<<< HEAD
         <img src="{{productImage}}" alt="{{productName}}" class="card-img-top" style="height: 250px; object-fit: cover;" data-bs-toggle="modal" data-bs-target="#imageModal{{@index}}">
+=======
+        <img src="{{productImage}}" alt="{{productName}}" class="card-img-top" style="height: 250px; object-fit: cover;">
+>>>>>>> 0716428c1e8858e0d80e087156e661d93a2f21fd
         <div class="card-body">
           <h5 class="card-title text-primary">{{productName}}</h5>
           <p class="card-text"><strong>Price:</strong> ₹{{totalPrice}}</p>
@@ -20,6 +24,7 @@
         </div>
       </div>
     </a>
+<<<<<<< HEAD
 
     <!-- Modal for full-size image -->
     <div class="modal fade" id="imageModal{{@index}}" tabindex="-1" aria-labelledby="imageModalLabel{{@index}}" aria-hidden="true">
@@ -34,6 +39,8 @@
         </div>
       </div>
     </div>
+=======
+>>>>>>> 0716428c1e8858e0d80e087156e661d93a2f21fd
     {{/each}}
   </div>
   {{else}}
@@ -41,9 +48,12 @@
   {{/if}}
 </div>
 
+<<<<<<< HEAD
 <!-- Add Bootstrap JS for Modal functionality -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
+=======
+>>>>>>> 0716428c1e8858e0d80e087156e661d93a2f21fd
 <style>
   /* Ensure the link inside the card has no text-decoration and remains black */
   a {
@@ -95,6 +105,7 @@
   .container {
     max-width: 1200px;
   }
+<<<<<<< HEAD
 
   /* Modal Styles */
   .modal-content {
@@ -106,4 +117,6 @@
     max-height: 80vh;
     object-fit: contain;
   }
+=======
+>>>>>>> 0716428c1e8858e0d80e087156e661d93a2f21fd
 </style>

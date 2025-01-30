@@ -69,11 +69,19 @@ router.post('/addproducts', (req, res) => {
   // Delete Product Route
   router.get('/delete-product/:id', (req, res) => {
     const productId = req.params.id;
+<<<<<<< HEAD
   
     productHelper.deleteProduct(productId)
       .then(() => {
         req.session.deleteMessage = 'Product deleted successfully!';
         res.redirect('/admin'); // Redirect to the admin page after marking as deleted
+=======
+
+    productHelper.deleteProduct(productId)
+      .then(() => {
+        req.session.deleteMessage = 'Product deleted successfully!';
+        res.redirect('/admin'); // Redirect to the admin page after deleting
+>>>>>>> 0716428c1e8858e0d80e087156e661d93a2f21fd
       })
       .catch((err) => {
         console.error('Error deleting product:', err);
@@ -81,7 +89,10 @@ router.post('/addproducts', (req, res) => {
         res.redirect('/admin');
       });
   });
+<<<<<<< HEAD
   
+=======
+>>>>>>> 0716428c1e8858e0d80e087156e661d93a2f21fd
 
 
 
