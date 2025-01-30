@@ -1,0 +1,22 @@
+<section>
+  <div class="container">
+    <div class="row">
+      <div class="col mt-3">
+        <h2 class="text-center">LOGIN</h2>
+        <form action="/login" method="post" enctype="multipart/form-data">
+          {{#if loginErr}}
+          <p class="text-danger">Invalid username or password</p>
+          {{/if}}
+          <label for="">E-mail Address</label>
+          <input type="email" name="Email" class="form-control" placeholder="Enter your email" required>
+          <label for="">Password</label>
+          <input type="password" name="Password" class="form-control" placeholder="Enter your password" required>
+          <div class="col mt-2">
+            <a href="/signup">Create an Account</a><br>
+          </div>
+          <button type="submit" class="btn btn-primary mt-3 pl-10">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>

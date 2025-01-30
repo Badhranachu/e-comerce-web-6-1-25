@@ -1,0 +1,72 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6 text-center">
+      <h1 class="mb-4 text-dark">Profile of {{user.Name}}</h1>
+
+      <div class="card shadow-lg">
+        <div class="card-header bg-dark text-white">
+          <h4 class="mb-0">User Details</h4>
+        </div>
+        <div class="card-body p-4">
+          <!-- Profile Picture Section -->
+          <div 
+            class="profile-picture-container mx-auto mb-4"
+            style="width: 150px; height: 150px; border-radius: 50%; border: 3px solid black; overflow: hidden;">
+            <img 
+              src="{{user.imagePath}}" 
+              alt="Profile Picture" 
+              class="img-fluid rounded-circle"
+              style="height: 100%; width: 100%; object-fit: cover;">
+          </div>
+
+          <!-- Profile Information Table -->
+          <table class="table table-borderless text-left">
+            <tbody>
+              <tr>
+                <td><strong>Name:</strong></td>
+                <td>{{user.Name}}</td>
+              </tr>
+              <tr>
+                <td><strong>Email:</strong></td>
+                <td>{{user.Email}}</td>
+              </tr>
+              {{#if user.DateOfBirth}}
+                <tr>
+                  <td><strong>Date of Birth:</strong></td>
+                  <td>{{user.DateOfBirth}}</td>
+                </tr>
+              {{/if}}
+              {{#if user.Age}}
+                <tr>
+                  <td><strong>Age:</strong></td>
+                  <td>{{user.Age}}</td>
+                </tr>
+              {{/if}}
+              {{#if user.Place}}
+                <tr>
+                  <td><strong>Place:</strong></td>
+                  <td>{{user.Place}}</td>
+                </tr>
+              {{/if}}
+              {{#if user.Address}}
+                <tr>
+                  <td><strong>Address:</strong></td>
+                  <td>{{user.Address}}</td>
+                </tr>
+              {{/if}}
+            </tbody>
+          </table>
+
+          <!-- Buttons Section -->
+          <div class="d-flex justify-content-between mt-4">
+            <!-- Logout Button -->
+            <a href="/logout" class="btn btn-danger">Logout</a>
+
+            <!-- Edit User Button -->
+            <a href="/edit-user"><button>edit</button></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

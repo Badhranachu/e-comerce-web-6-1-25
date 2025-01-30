@@ -1,0 +1,217 @@
+<section>
+  <section>
+  <div class="container">
+    <!-- Admin Product Management -->
+    <div class="row justify-content-end">
+      <div class="col-auto text-end">
+        <a href="/admin/addproducts" class="btn btn-success mt-3">Add Products</a>
+      </div>
+    </div>
+
+    <!-- Show delete message if exists -->
+    {{#if deleteMessage}}
+      <p class="text-danger text-center mt-3">{{deleteMessage}}</p>
+    {{/if}}
+
+    <h2 class="text-center mt-4">Admin - All Products</h2>
+
+    {{#if products.length}}
+      <div class="table-responsive mt-4">
+        <table class="table table-striped table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th scope="col">No</th>
+              <th scope="col">Title</th>
+              <th scope="col">Category</th>
+              <th scope="col">Description</th>
+              <th scope="col">Price</th>
+              <th scope="col">Quantity</th>
+              <th scope="col">Image</th>
+              <th scope="col">Status</th>
+              <th scope="col">Show</th>
+              <th scope="col">Modify</th>
+              <th scope="col">Drop</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each products}}
+            <tr>
+              <th scope="row">{{@index}}</th>
+              <td>{{this.name}}</td>
+              <td>{{this.category}}</td>
+              <td>{{this.description}}</td>
+              <td>{{this.price}}</td>
+              <td>{{this.quantity}}</td>
+              <td>
+                {{#if this.imagePath}}
+                  <img src="{{this.imagePath}}" class="img-fluid" style="max-width: 100px;" alt="Product Image" />
+                {{else}}
+                  <span>No Image</span>
+                {{/if}}
+              </td>
+              <td>
+                <a href="/admin/toggle-status/{{this._id}}">
+                  <button class="btn {{#if this.isActive}}btn-success{{else}}btn-danger{{/if}}">
+                    {{#if this.isActive}}Active{{else}}Inactive{{/if}}
+                  </button>
+                </a>
+              </td>
+              <td>
+                <a href="/admin/toggle-show/{{this._id}}">
+                  <button class="btn {{#if this.isShown}}btn-primary{{else}}btn-warning{{/if}}">
+                    {{#if this.isShown}}Shown{{else}}Unshown{{/if}}
+                  </button>
+                </a>
+              </td>
+              <td>
+                <a href="/admin/edit-product/{{this._id}}" class="btn btn-success" aria-label="Edit Product">Edit</a>
+              </td>
+              <td>
+                <a href="/admin/delete-product/{{this._id}}">
+                  <button type="button" class="btn btn-danger">Delete</button>
+                </a>
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    {{else}}
+      <p class="text-center mt-5">No products available. <a href="/admin/addproducts">Add some products</a></p>
+    {{/if}}
+  </div>
+</section>
+
+</section>
+<style>
+  /* Styles for admin table */
+  .text-success {
+    color: #28a745;
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+
+  .product-link {
+    display: block;
+    text-decoration: none;
+    color: black;
+  }
+
+  .product-link:hover,
+  .product-link:focus,
+  .product-link:active {
+    color: black;
+    outline: none;
+  }
+
+  .product-card {
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    text-align: center;
+    width: 250px;
+    height: 450px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s ease-in-out;
+  }
+
+  .product-card img {
+    width: 20rem;
+    height: 15rem;
+    object-fit: contain;
+    margin: auto;
+    padding-top: 10px;
+    border-radius: 5px;
+  }
+
+  .product-card .card-body {
+    padding: 10px;
+    flex-grow: 1;
+  }
+
+  .product-card .card-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .product-card .card-text {
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .product-card .out-of-stock {
+    color: #ff0000;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+
+  .product-card .add-to-wishlist {
+    background-color: #e6b800;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .product-card .add-to-wishlist:hover {
+    background-color: #cc9a00;
+  }
+
+  .product-card:hover {
+    transform: scale(1.02);
+  }
+
+  .row {
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  a {
+    text-decoration: none !important;
+    color: inherit;
+  }
+
+  .d-flex {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .d-flex .btn {
+    width: 45%;
+  }
+
+  .toggle-status-btn {
+    width: 100px;
+    padding: 5px 10px;
+    text-align: center;
+    font-weight: bold;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-success {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .btn-success:hover,
+  .btn-danger:hover {
+    opacity: 0.8;
+  }
+</style>

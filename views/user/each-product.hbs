@@ -1,0 +1,178 @@
+<div class="product-details">
+  <!-- Product Image and Info Section -->
+  <div class="product-image">
+    <img 
+      src="/product-images/{{product._id}}.jpg" 
+      alt="{{product.name}}" 
+      onerror="this.onerror=null;this.src='/product-images/placeholder.jpg';"
+      class="product-img" 
+    />
+  </div>
+
+  <div class="product-info">
+    <!-- Product Name -->
+    <h2 class="product-name">{{product.name}}</h2>
+
+    <!-- Product Category -->
+    <p class="product-category">Category: <span>{{product.category}}</span></p>
+
+    <!-- Product Price -->
+    <h4 class="product-price" style="color: {{#if product.isActive}}green{{else}}red{{/if}};">
+      ₹ {{product.price}}
+    </h4>
+
+    <!-- Product Description -->
+    <p class="product-description">{{product.description}}</p>
+
+    <!-- Button Group -->
+    {{#if product.isActive}}
+      <div class="button-group">
+  <!-- Add to Cart Button -->
+  <a href="/addtocart?productId={{product._id}}&productName={{product.name}}&userId={{user._id}}" style="text-decoration: none; color: black;">
+    <button type="button" class="btn add-to-wishlist">ADD TO CART</button>
+  </a>
+
+  <!-- Buy Now Button -->
+<!-- Buy Now Button with Product ID in URL -->
+<a href="/buy/{{product._id}}">
+  <button type="button" class="btn buy-now">BUY NOW</button>
+</a>
+</div>
+
+    {{else}}
+      <p class="out-of-stock">Out of Stock</p>
+    {{/if}}
+
+    <!-- Additional Information -->
+    {{#if product.extra}}
+      <div class="extra-info">
+        <h4>Additional Information:</h4>
+        <ul>
+          {{#each product.extra}}
+            <li>{{this}}</li>
+          {{/each}}
+        </ul>
+      </div>
+    {{/if}}
+  </div>
+</div>
+<style>
+  .product-details {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  height: 500px; /* Set a fixed height for the product container */
+}
+
+.product-image {
+  flex: 1;
+  min-width: 300px;
+  margin-right: 20px;
+  height: 100%; /* Ensure the image container takes full height */
+}
+
+.product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures image covers the container without distorting */
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.product-info {
+  flex: 2;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Ensures even distribution of content */
+}
+
+.product-name {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.product-category {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.product-price {
+  font-size: 22px;
+  font-weight: bold;
+  color: #e60000;
+  margin-bottom: 15px;
+}
+
+.product-description {
+  font-size: 16px;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.add-to-wishlist {
+  background-color: #ffcc00;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.add-to-wishlist:hover {
+  background-color: #ffb300;
+}
+
+.buy-now {
+  background-color: #ff7f00; /* Orange color */
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.buy-now:hover {
+  background-color: #e67300; /* Darker orange on hover */
+}
+
+.out-of-stock {
+  color: #ff0000;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+.extra-info {
+  margin-top: 30px;
+}
+
+.extra-info h4 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.extra-info ul {
+  padding-left: 20px;
+}
+
+.extra-info li {
+  font-size: 14px;
+  color: #555;
+}
+
+</style>

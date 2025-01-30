@@ -1,0 +1,120 @@
+<section>
+  <div class="container">
+    <div class="row">
+      <div class="col mt-3">
+        <h2 class="text-center">Edit Product</h2>
+        <!-- Set enctype to handle file uploads -->
+        <form 
+          action="/admin/edit-product/{{product._id}}" 
+          method="post" 
+          enctype="multipart/form-data"
+        >
+          <!-- Name Input -->
+          <div class="form-group">
+            <label for="Name">Name</label>
+            <input 
+              type="text" 
+              name="name" 
+              id="Name" 
+              class="form-control" 
+              value="{{product.name}}" 
+              required>
+          </div>
+
+          <!-- Category Input -->
+          <div class="form-group">
+            <label for="Category">Category</label>
+            <input 
+              type="text" 
+              name="category" 
+              id="Category" 
+              class="form-control" 
+              value="{{product.category}}" 
+              required>
+          </div>
+
+          <!-- Price Input -->
+          <div class="form-group">
+            <label for="Price">Price</label>
+            <input 
+              type="number" 
+              name="price" 
+              id="Price" 
+              class="form-control" 
+              value="{{product.price}}" 
+              step="0.01" 
+              required>
+          </div>
+
+          <!-- Quantity Input -->
+          <div class="form-group">
+            <label for="Quantity">Quantity</label>
+            <input 
+              type="number" 
+              name="quantity" 
+              id="Quantity" 
+              class="form-control" 
+              value="{{product.quantity}}" 
+              min="1" 
+              required>
+          </div>
+
+          <!-- Description Input -->
+          <div class="form-group">
+            <label for="Description">Description</label>
+            <textarea 
+              name="description" 
+              id="Description" 
+              class="form-control" 
+              rows="3" 
+              required>{{product.description}}</textarea>
+          </div>
+
+          <!-- Product Image Input -->
+          <div class="form-group">
+            <label for="Image">Product Image</label>
+            <!-- Existing image preview -->
+            <div class="mb-2">
+              {{#if product.imagePath}}
+                <img id="imagePreview" src="{{product.imagePath}}" alt="Product Image" style="max-width: 150px;">
+              {{else}}
+                <p>No image available</p>
+              {{/if}}
+            </div>
+            <!-- File input for updating the image -->
+            <input 
+              type="file" 
+              name="image" 
+              id="Image" 
+              class="form-control" 
+              accept="image/*" 
+              onchange="previewImage(event)">
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-success mt-3">Update Product</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Function to preview the image before submission
+  function previewImage(event) {
+    const imagePreview = document.getElementById('imagePreview');
+    const file = event.target.files[0];
+
+    if (file) {
+      // Create a URL for the selected file
+      const reader = new FileReader();
+      
+      // When the file is read, update the image preview
+      reader.onload = function (e) {
+        imagePreview.src = e.target.result;
+      };
+
+      reader.readAsDataURL(file);
+    }
+  }
+</script>

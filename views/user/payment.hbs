@@ -1,0 +1,79 @@
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Choose Payment Method</h2>
+
+  {{#if isMultiple}}
+  <div class="text-center mb-4">
+    <h4 class="text-success"><strong>Total Price:</strong> ₹{{totalPrice}}</h4>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-bordered text-center">
+      <thead>
+        <tr>
+          <th>Product Name</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each cartDetails}}
+        <tr>
+          <td>{{this.name}}</td>
+          <td>₹{{this.price}}</td>
+          <td>{{this.quantity}}</td>
+          <td>₹{{this.total}}</td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="text-center mb-4">
+    <h4 class="text-primary"><strong>Product:</strong> {{product.name}}</h4>
+    <h4 class="text-success"><strong>Total Price:</strong> ₹{{totalPrice}}</h4>
+  </div>
+  {{/if}}
+
+  <div class="row justify-content-center">
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h4 class="card-title">Cash on Delivery (COD)</h4>
+          <form action="/confirm-payment" method="POST">
+            <input type="hidden" name="paymentMethod" value="COD" />
+            {{#if isMultiple}}
+            <input type="hidden" name="cartDetails" value='{{json cartDetails}}' />
+            <input type="hidden" name="totalPrice" value="{{totalPrice}}" />
+            {{else}}
+            <input type="hidden" name="productName" value="{{product.name}}" />
+            <input type="hidden" name="productId" value="{{product.id}}" />
+            <input type="hidden" name="quantity" value="{{quantity}}" />
+            <input type="hidden" name="totalPrice" value="{{totalPrice}}" />
+            {{/if}}
+            <button type="submit" class="btn btn-success btn-lg">Confirm Purchase with COD</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h4 class="card-title">Online Payment</h4>
+          <form action="/finalize-payment" method="POST">
+            <input type="hidden" name="paymentMethod" value="Online" />
+            {{#if isMultiple}}
+            <input type="hidden" name="cartDetails" value='{{json cartDetails}}' />
+            <input type="hidden" name="totalPrice" value="{{totalPrice}}" />
+            {{else}}
+            <input type="hidden" name="productName" value="{{product.name}}" />
+            <input type="hidden" name="productId" value="{{product.id}}" />
+            <input type="hidden" name="quantity" value="{{quantity}}" />
+            <input type="hidden" name="totalPrice" value="{{totalPrice}}" />
+            {{/if}}
+            <button type="submit" class="btn btn-primary btn-lg">Pay Now</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

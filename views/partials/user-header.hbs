@@ -1,0 +1,129 @@
+<header>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">BEKOLA</a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-toggle="collapse"
+      data-target="#navbarSupportedContent"
+      aria-controls="navbarSupportedContent"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <!-- Left-side Navigation -->
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="/">Products <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/Cart">Cart</a>
+        </li>
+        {{#if user}} <!-- Show orders link if user is logged in -->
+        <li class="nav-item">
+          <a class="nav-link" href="/orders">Orders</a>
+        </li>
+        {{/if}}
+      </ul>
+
+      <!-- Right-side Account Dropdown -->
+      <div class="btn-group">
+        <div
+          class="dropdown-toggle d-flex align-items-center justify-content-center no-arrow"
+          id="userDropdown"
+          data-toggle="dropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          {{#if user}} 
+            <img src="{{user.imagePath}}" alt="Profile Picture" class="profile-picture">
+          {{else}}
+            <div class="default-avatar">4045</div> <!-- Default circle if no image -->
+          {{/if}}
+        </div>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+          {{#if user}}
+            <a class="dropdown-item" href="/profile">View Profile</a>
+            <a class="dropdown-item" href="/logout">Logout</a>
+          {{else}}
+            <a class="dropdown-item" href="/login">Login</a>
+            <a class="dropdown-item" href="/signup">Signup</a>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<style>
+  /* Navbar Styles */
+  .navbar {
+    padding: 0.5rem 1rem; /* Ensure consistent navbar spacing */
+  }
+
+  .navbar-nav {
+    margin-left: 0; /* Remove unwanted margin */
+  }
+
+  .navbar-nav .nav-link {
+    padding-right: 1rem; /* Consistent padding between items */
+  }
+
+  /* Profile Dropdown */
+  .btn-group {
+    position: relative; /* Keep the dropdown in place */
+  }
+
+  .dropdown-menu {
+    max-width: 250px; /* Constrain dropdown width */
+    overflow-wrap: break-word; /* Prevent long text from breaking the layout */
+  }
+
+  .dropdown-menu-right {
+    right: 0; /* Align dropdown to the right */
+    left: auto; /* Disable left alignment */
+  }
+
+  /* Remove Arrow from Dropdown Toggle */
+  .no-arrow::after {
+    display: none !important; /* Hide the dropdown arrow */
+  }
+
+  /* Profile Picture and Default Avatar */
+  .profile-picture,
+  .default-avatar {
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%; /* Enforce circular shape */
+    border: 2px solid black; /* Black border for consistency */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .profile-picture {
+    object-fit: cover; /* Fit the image into the circle without distortion */
+    object-position: center; /* Center the image within the circle */
+    background-color: white; /* Clean background */
+  }
+
+  .default-avatar {
+    background-color: #007bff; /* Default blue background */
+    color: white; /* White text */
+    font-size: 18px; /* Font size for the default text */
+  }
+
+  /* User Dropdown Toggle */
+  #userDropdown {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0; /* Remove padding around the image */
+    cursor: pointer; /* Make it clickable */
+  }
+</style>
