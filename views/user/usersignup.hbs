@@ -1,0 +1,111 @@
+<section>
+  <div class="container">
+    <div class="row">
+      <div class="col mt-3">
+        <h2 class="text-center">SIGN UP</h2>
+        <form action="/signup" method="post" enctype="multipart/form-data">
+          <!-- Name -->
+          <label for="name">Name</label>
+          <input type="text" name="Name" id="name" class="form-control" placeholder="Name" required>
+
+          <!-- Email -->
+          <label for="email" class="mt-2">E-mail Address</label>
+          <input type="email" name="Email" id="email" class="form-control" placeholder="Enter E-mail" required>
+
+          <!-- Password -->
+          <label for="password" class="mt-2">Password</label>
+          <input type="password" name="Password" id="password" class="form-control" placeholder="Password" required>
+
+          <!-- Confirm Password -->
+          <label for="confirm-password" class="mt-2">Confirm Password</label>
+          <input type="password" name="ConfirmPassword" id="confirm-password" class="form-control" placeholder="Confirm Password" required>
+
+          <!-- Phone Number -->
+          <label for="phone" class="mt-2">Phone Number</label>
+          <input 
+            type="tel" 
+            name="PhoneNumber" 
+            id="phone" 
+            class="form-control" 
+            placeholder="Enter Phone Number" 
+            pattern="[0-9]{10}" 
+            title="Please enter a 10-digit phone number" 
+            required
+          >
+
+          <!-- Profile Picture Upload -->
+          <label for="profile-picture" class="mt-2">Upload Profile Picture</label>
+          <input 
+            type="file" 
+            name="ProfilePicture" 
+            id="profile-picture" 
+            class="form-control-file" 
+            accept="image/*" 
+            required 
+            onchange="previewProfilePicture(event)"
+          >
+          <!-- Preview Section -->
+          <div class="mt-3">
+            <img 
+              id="profile-preview" 
+              src="#" 
+              alt="Profile Picture Preview" 
+              style="display: none; max-width: 150px; max-height: 150px; border-radius: 50%; border: 1px solid #ddd;"
+            >
+          </div>
+
+          <!-- Date of Birth (Optional) -->
+          <label for="dob" class="mt-2">Date of Birth</label>
+          <input type="date" name="DateOfBirth" id="dob" class="form-control">
+
+          <!-- Age (Optional) -->
+          <label for="age" class="mt-2">Age</label>
+          <input type="number" name="Age" id="age" class="form-control" placeholder="Age" min="1">
+
+          <!-- Place (Optional) -->
+          <label for="place" class="mt-2">Place</label>
+          <input type="text" name="Place" id="place" class="form-control" placeholder="Place">
+
+          <!-- Address -->
+          <label for="address" class="mt-2">Address</label>
+          <textarea 
+            name="Address" 
+            id="address" 
+            class="form-control" 
+            placeholder="Enter your full address" 
+            rows="3" 
+            required
+          ></textarea>
+
+          <!-- Already have an account -->
+          <div class="col mt-2">
+            <a href="/login">Already have an account?</a><br>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-success mt-3 pl-10">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Function to preview the uploaded profile picture
+  function previewProfilePicture(event) {
+    const preview = document.getElementById('profile-preview');
+    const file = event.target.files[0];
+    
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block'; // Show the preview
+      };
+      reader.readAsDataURL(file); // Read the uploaded file
+    } else {
+      preview.src = '#';
+      preview.style.display = 'none'; // Hide the preview if no file is selected
+    }
+  }
+</script>

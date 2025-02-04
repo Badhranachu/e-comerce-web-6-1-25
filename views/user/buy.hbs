@@ -1,0 +1,155 @@
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Product Details for Purchase!</h2>
+
+  <!-- Check if the product is passed -->
+  {{#if product}}
+  <div class="row justify-content-center">
+    <!-- Left Column: User's Personal Details -->
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h4 class="card-title">Your Personal Details</h4>
+          <img src="{{user.imagePath}}" alt="Profile Image" class="img-fluid rounded-circle mb-3" style="width: 100px; height: 100px;" />
+          <p><strong>Name:</strong> {{user.Name}}</p>
+          <p><strong>Email:</strong> {{user.Email}}</p>
+          <p><strong>Phone:</strong> {{user.PhoneNumber}}</p> <!-- Updated to PhoneNumber -->
+          <p><strong>Address:</strong> {{user.Address}}</p>
+          <p><strong>Place:</strong> {{user.Place}}</p> <!-- New Field -->
+          <a href="/edit-profile" class="btn btn-warning btn-sm">Edit Profile</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Product Information -->
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h4 class="card-title">Product Details</h4>
+          <div class="row">
+            <div class="col-md-4">
+              <img src="/product-images/{{product._id}}.jpg" alt="{{product.name}}" class="product-image img-fluid img-thumbnail" />
+            </div>
+            <div class="col-md-8">
+              <h5 class="card-subtitle mb-2 text-muted">{{product.name}}</h5>
+              <p><strong>Price:</strong> ₹{{product.price}}</p>
+              <p><strong>Category:</strong> {{product.category}}</p>
+
+              <!-- Quantity Selection -->
+              <div class="input-group mt-3">
+                <span class="input-group-btn">
+                  <button class="btn btn-outline-secondary" type="button" id="decrementBtn">-</button>
+                </span>
+                <input type="text" class="form-control text-center" value="1" id="quantityInput" readonly />
+                <span class="input-group-btn">
+                  <button class="btn btn-outline-secondary" type="button" id="incrementBtn">+</button>
+                </span>
+              </div>
+
+              <!-- Total Price Display -->
+              <p class="mt-3"><strong>Total Price:</strong> ₹<span id="totalPrice">{{product.price}}</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 text-center">
+    <!-- Confirm Purchase Form -->
+    <form action="/payment" method="POST">
+      <input type="hidden" name="productId" value="{{product._id}}" />
+      <input type="hidden" name="productName" value="{{product.name}}" />
+      <input type="hidden" name="productPrice" value="{{product.price}}" />
+      <input type="hidden" name="quantity" id="quantityInputForm" />
+      <input type="hidden" name="totalPrice" id="totalPriceInput" />
+      <button type="submit" class="btn btn-success btn-lg">Confirm Purchase</button>
+    </form>
+  </div>
+
+  {{else}}
+  <p class="text-center">Product not found in your cart.</p>
+  {{/if}}
+</div>
+
+<style>
+  .product-image {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  .product-item {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+  }
+  .container {
+    max-width: 1200px;
+  }
+  .card {
+    border-radius: 10px;
+  }
+  .mb-4 {
+    margin-bottom: 1.5rem;
+  }
+  .btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+  }
+  .btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+  }
+  .input-group {
+    width: 150px;
+    margin: 0 auto;
+  }
+  .form-control {
+    width: 50px;
+    text-align: center;
+  }
+</style>
+
+<script>
+  // Get the product price from the page
+  var productPrice = parseInt("{{product.price}}");
+
+  // Function to update hidden inputs
+  function updateHiddenInputs() {
+    var quantity = parseInt(document.getElementById("quantityInput").value);
+    var totalPrice = productPrice * quantity;
+
+    // Update hidden inputs
+    document.getElementById("quantityInputForm").value = quantity;
+    document.getElementById("totalPriceInput").value = totalPrice;
+  }
+
+  // Function to update the total price
+  function updateTotalPrice() {
+    var quantity = parseInt(document.getElementById("quantityInput").value);
+    var totalPrice = productPrice * quantity;
+    document.getElementById("totalPrice").textContent = totalPrice;
+
+    // Sync hidden inputs
+    updateHiddenInputs();
+  }
+
+  // Add functionality to increment and decrement buttons
+  document.getElementById("incrementBtn").addEventListener("click", function () {
+    var quantityInput = document.getElementById("quantityInput");
+    quantityInput.value = parseInt(quantityInput.value) + 1;
+    updateTotalPrice();
+  });
+
+  document.getElementById("decrementBtn").addEventListener("click", function () {
+    var quantityInput = document.getElementById("quantityInput");
+    if (parseInt(quantityInput.value) > 1) {
+      quantityInput.value = parseInt(quantityInput.value) - 1;
+      updateTotalPrice();
+    }
+  });
+
+  // Initialize total price and hidden inputs on page load
+  updateTotalPrice();
+</script>
