@@ -1,5 +1,21 @@
-<!-- user/view-products.hbs -->
 <section>
+
+  <div class="modal fade" id="wishlistModal" tabindex="-1" aria-labelledby="wishlistModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="wishlistModalLabel">Wishlist Update</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Product has been added to your wishlist!
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
   <div class="head text-center">
     <h1>All Products</h1>
     {{#if successMessage}}
@@ -19,27 +35,31 @@
               src="/product-images/{{this._id}}.jpg" 
               alt="Product Image" 
               onerror="this.onerror=null;this.src='/product-images/placeholder.jpg';">
+            
+            <!-- Wishlist button with userId and productId -->
+<a href="#" class="btn btn-counter" data-count="0" 
+   onclick="addToWishlist(event, '{{user._id}}', '{{this._id}}')">
+  <span>&#x2764;</span> Love it
+</a>
+
+            
             <div class="card-body">
               <h3 class="card-title">{{this.name}}</h3>
               <h4> ₹ {{this.price}}</h4>
               <p class="card-text">{{this.category}}</p>
-              <!-- Button container ensures consistent height -->
+
               <div class="button-container">
                 {{#if this.quantity}}
-                    <form action="/addtocart" method="POST">
-                      <input type="hidden" name="productId" value="{{this._id}}">
-                      <input type="hidden" name="productName" value="{{this.name}}">
-                      <input type="hidden" name="userId" value="{{user._id}}">
-                      <button type="submit" class="add-to-cart">ADD TO CART</button>
-                    </form>
+                  <form class="add-to-cart-form" method="POST" onsubmit="submitAddToCart(event, this)">
+                    <input type="hidden" name="productId" value="{{this._id}}">
+                    <input type="hidden" name="productName" value="{{this.name}}">
+                    <input type="hidden" name="userId" value="{{user._id}}">
+                    <button type="submit" class="add-to-cart btn btn-warning btn-block">ADD TO CART</button>
+                  </form>
                 {{else}}
                   <p class="out-of-stock">Out of Stock</p>
                 {{/if}}
               </div>
-
-              {{#if successMessage}}
-                <p class="text-warning mt-2">Already in your cart</p>
-              {{/if}}
             </div>
           </div>
         </a>
@@ -48,6 +68,7 @@
   </div>
 </section>
 
+<!-- CSS Styles (No Change) -->
 <style>
   .product-link {
     display: block;
@@ -60,18 +81,6 @@
   .product-link:active {
     text-decoration: none;
     color: black;
-  }
-
-  .text-success {
-    color: #28a745;
-    font-weight: bold;
-    margin-bottom: 1rem;
-  }
-
-  .text-danger {
-    color: #dc3545;
-    font-weight: bold;
-    margin-bottom: 1rem;
   }
 
   .product-card {
@@ -87,6 +96,7 @@
     justify-content: space-between;
     align-items: center;
     transition: transform 0.2s ease-in-out;
+    position: relative;
   }
 
   .product-card img {
@@ -143,6 +153,20 @@
     background-color: #cc9a00;
   }
 
+  .add-to-cart-message {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4CAF50;
+    color: white;
+    font-size: 14px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    z-index: 1;
+    display: none; /* Hidden by default */
+  }
+
   .row {
     display: flex;
     justify-content: center;
@@ -152,4 +176,60 @@
   .btn-link {
     width: 100%;
   }
+
+  .wishlist-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    color: #bbb;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .wishlist-icon.active {
+    color: red;
+  }
 </style>
+
+<!-- JavaScript for AJAX Form Submission -->
+
+<script>
+  function addToWishlist(event, userId, productId) {
+    event.preventDefault();
+
+    fetch(`/added-to-wishlist?productId=${productId}`, {
+      method: 'GET',
+    })
+    .then(response => response.json()) // Expecting JSON response
+    .then(data => {
+      if (data.message) {
+        document.querySelector("#wishlistModal .modal-body").innerText = data.message;
+        new bootstrap.Modal(document.getElementById('wishlistModal')).show();
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+
+   
+
+  function submitAddToCart(event, form) {
+    event.preventDefault();
+    const productCard = form.closest('.product-card');
+    const message = document.createElement('div');
+    message.classList.add('add-to-cart-message', 'alert', 'alert-success');
+    message.textContent = 'Added to Cart!';
+    productCard.appendChild(message);
+    setTimeout(() => message.remove(), 2000);
+    
+    const formData = new FormData(form);
+    fetch(form.action, {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => console.log(data))
+    .catch(error => console.error('Error:', error));
+  }
+</script>
+

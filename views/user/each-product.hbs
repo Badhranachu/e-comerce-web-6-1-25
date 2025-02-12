@@ -1,48 +1,50 @@
 <div class="product-details">
-  <!-- Product Image and Info Section -->
+  <!-- Product Image -->
   <div class="product-image">
     <img 
       src="/product-images/{{product._id}}.jpg" 
       alt="{{product.name}}" 
       onerror="this.onerror=null;this.src='/product-images/placeholder.jpg';"
-      class="product-img" 
+      class="product-img"
     />
   </div>
 
+  <!-- Product Info -->
   <div class="product-info">
-    <!-- Product Name -->
     <h2 class="product-name">{{product.name}}</h2>
-
-    <!-- Product Category -->
     <p class="product-category">Category: <span>{{product.category}}</span></p>
+
+    <!-- Product Description -->
+    <div class="product-description">
+      <h4>Description:</h4>
+      <pre>{{product.description}}</pre>
+    </div>
 
     <!-- Product Price -->
     <h4 class="product-price" style="color: {{#if product.isActive}}green{{else}}red{{/if}};">
       ₹ {{product.price}}
     </h4>
 
-    <!-- Product Description -->
-    <p class="product-description">{{product.description}}</p>
-
-    <!-- Button Group -->
+    <!-- Button Section -->
     {{#if product.isActive}}
-      <div class="button-group">
-  <!-- Add to Cart Button -->
- <form action="/addtocart" method="POST" style="display: inline;">
-    <input type="hidden" name="productId" value="{{product._id}}">
-    <input type="hidden" name="productName" value="{{product.name}}">
-    <input type="hidden" name="userId" value="{{user._id}}">
-    <button type="submit" class="btn add-to-wishlist">ADD TO CART</button>
-</form>
+      <div class="button-group" style="display: flex; justify-content: space-between; gap: 10px; align-items: center;">
+        <!-- Add to Cart Button -->
+        <form action="/addtocart" method="POST" style="flex: 1;">
+          <input type="hidden" name="productId" value="{{product._id}}">
+          <input type="hidden" name="productName" value="{{product.name}}">
+          <input type="hidden" name="userId" value="{{user._id}}">
+          <button type="submit" class="btn add-to-cart" style="width: 100%; padding: 10px; background-color: #4CAF50; color: white; font-size: 16px; display: flex; align-items: center; justify-content: center;">
+            🛒 ADD TO CART
+          </button>
+        </form>
 
-
-  <!-- Buy Now Button -->
-<!-- Buy Now Button with Product ID in URL -->
-<a href="/buy/{{product._id}}">
-  <button type="button" class="btn buy-now">BUY NOW</button>
-</a>
-</div>
-
+        <!-- Buy Now Button -->
+        <a href="/buy/{{product._id}}" style="flex: 1;">
+          <button type="button" class="btn buy-now" style="width: 100%; padding: 10px; background-color: #FF5733; color: white; font-size: 16px; display: flex; align-items: center; justify-content: center;">
+            ⚡ BUY NOW
+          </button>
+        </a>
+      </div>
     {{else}}
       <p class="out-of-stock">Out of Stock</p>
     {{/if}}
@@ -60,123 +62,129 @@
     {{/if}}
   </div>
 </div>
+
+<!-- CSS Styles -->
 <style>
   .product-details {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  height: 500px; /* Set a fixed height for the product container */
-}
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    height: auto;
+  }
 
-.product-image {
-  flex: 1;
-  min-width: 300px;
-  margin-right: 20px;
-  height: 100%; /* Ensure the image container takes full height */
-}
+  .product-image {
+    flex: 1;
+    min-width: 300px;
+    margin-right: 20px;
+    height: 100%;
+  }
 
-.product-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Ensures image covers the container without distorting */
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+  .product-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
 
-.product-info {
-  flex: 2;
-  min-width: 300px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between; /* Ensures even distribution of content */
-}
+  .product-info {
+    flex: 2;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
 
-.product-name {
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-}
+  .product-name {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+  }
 
-.product-category {
-  font-size: 14px;
-  color: #888;
-  margin-bottom: 10px;
-}
+  .product-category {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 10px;
+  }
 
-.product-price {
-  font-size: 22px;
-  font-weight: bold;
-  color: #e60000;
-  margin-bottom: 15px;
-}
+  .product-price {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
 
-.product-description {
-  font-size: 16px;
-  color: #555;
-  line-height: 1.5;
-  margin-bottom: 20px;
-}
+  .product-description {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    white-space: nowrap;  /* Prevent text from wrapping */
+    overflow-x: auto;     /* Enable horizontal scroll */
+    max-width: 100%;      /* Ensure it doesn’t overflow the container */
+    padding: 10px;
+    background-color: #f1f1f1; /* Optional: background color */
+    border-radius: 8px;   /* Optional: rounded corners */
+  }
 
-.add-to-wishlist {
-  background-color: #ffcc00;
-  border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.3s;
-}
+  .product-description pre {
+    margin: 0; /* Remove default margin for pre element */
+  }
 
-.add-to-wishlist:hover {
-  background-color: #ffb300;
-}
+  .add-to-wishlist, .buy-now {
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+  }
 
-.buy-now {
-  background-color: #ff7f00; /* Orange color */
-  border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  color: #fff;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.3s;
-}
+  .add-to-wishlist {
+    background-color: #ffcc00;
+  }
 
-.buy-now:hover {
-  background-color: #e67300; /* Darker orange on hover */
-}
+  .add-to-wishlist:hover {
+    background-color: #ffb300;
+  }
 
-.out-of-stock {
-  color: #ff0000;
-  font-size: 16px;
-  font-weight: bold;
-  margin-top: 15px;
-}
+  .buy-now {
+    background-color: #ff7f00;
+    color: #fff;
+  }
 
-.extra-info {
-  margin-top: 30px;
-}
+  .buy-now:hover {
+    background-color: #e67300;
+  }
 
-.extra-info h4 {
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-}
+  .out-of-stock {
+    color: #ff0000;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 15px;
+  }
 
-.extra-info ul {
-  padding-left: 20px;
-}
+  .extra-info {
+    margin-top: 30px;
+  }
 
-.extra-info li {
-  font-size: 14px;
-  color: #555;
-}
+  .extra-info h4 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+  }
 
+  .extra-info ul {
+    padding-left: 20px;
+  }
+
+  .extra-info li {
+    font-size: 14px;
+    color: #555;
+  }
 </style>

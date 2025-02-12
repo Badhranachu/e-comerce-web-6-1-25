@@ -61,38 +61,39 @@ module.exports = {
   
   getCartDetailsUsingId: async (userId) => {
     try {
-        console.log("Searching for user cart with ID:", userId);
-
-        const cart = await db
-            .get()
-            .collection(collection.CART_COLLECTION)
-            .findOne({ userId: userId });
-
-        if (!cart || !cart.products || cart.products.length === 0) {
-            console.log("No cart found for user:", userId);
-            return { products: [], totalPrice: 0 };  // Ensure it returns an object
+      console.log("Searching for user cart with ID:", userId);
+  
+      const cart = await db
+        .get()
+        .collection(collection.CART_COLLECTION)
+        .findOne({ userId: userId });
+  
+      if (!cart || !cart.products || cart.products.length === 0) {
+        console.log("No cart found for user:", userId);
+        return { products: [], totalPrice: 0 };  // Ensure it returns an object
+      }
+  
+      // Calculate total price
+      let totalPrice = 0;
+      for (let item of cart.products) {
+        const product = await db
+          .get()
+          .collection(collection.PRODUCT_COLLECTION)
+          .findOne({ _id: new ObjectId(item.productId) });
+  
+        if (product) {
+          totalPrice += (product.price || 0) * item.quantity;
         }
-
-        // Calculate total price
-        let totalPrice = 0;
-        for (let item of cart.products) {
-            const product = await db
-                .get()
-                .collection(collection.PRODUCT_COLLECTION)
-                .findOne({ _id: new ObjectId(item.productId) });
-
-            if (product) {
-                totalPrice += (product.price || 0) * item.quantity;
-            }
-        }
-
-        console.log("Cart found for user:", userId, cart.products);
-        return { products: cart.products, totalPrice };
+      }
+  
+      console.log("Cart found for user:", userId, cart.products);
+      return { products: cart.products, totalPrice };
     } catch (error) {
-        console.error("Error fetching cart details:", error);
-        return { products: [], totalPrice: 0 }; // Return a proper object to prevent destructuring errors
+      console.error("Error fetching cart details:", error);
+      return { products: [], totalPrice: 0 }; // Return a proper object to prevent destructuring errors
     }
-},
+  },
+  
 removeFromCart: async (userId, productId) => {
   try {
     const cart = await db.get().collection(collection.CART_COLLECTION).findOne({ userId: userId });

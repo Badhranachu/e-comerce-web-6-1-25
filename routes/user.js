@@ -252,6 +252,55 @@ router.get('/profile', async (req, res) => {
   }
 });
 
+//add to wishlist 
+router.get('/added-to-wishlist', async (req, res) => {
+  try {
+    const { productId } = req.query;
+    const userId = req.session.userId; // Get user ID from session
+
+    console.log("User ID for wishlist:", userId);
+
+    if (!userId || !productId) {
+      return res.status(400).json({ error: "User ID and Product ID are required" });
+    }
+
+    // Check if the user already has a wishlist
+    const wishlist = await db.get().collection(collection.WISHLIST_COLLECTION).findOne({ userId });
+
+    if (wishlist) {
+      // Check if the product is already in the wishlist
+      const productExists = wishlist.products.some(product => product.productId === productId);
+
+      if (productExists) {
+        return res.json({ message: "Product already in wishlist" });
+      }
+
+      // Add the new product to the existing wishlist
+      await db.get().collection(collection.WISHLIST_COLLECTION).updateOne(
+        { userId },
+        { $push: { products: { productId } } }
+      );
+
+    } else {
+      // Create a new wishlist for the user and add the product
+      await db.get().collection(collection.WISHLIST_COLLECTION).insertOne({
+        userId,
+        products: [{ productId }]
+      });
+    }
+
+    res.json({ message: "Product added to wishlist" });
+
+  } catch (error) {
+    console.error("Error adding to wishlist:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+
+
+
 
 router.post('/addtocart', async (req, res) => {
   try {
@@ -345,9 +394,76 @@ router.get('/cart', async (req, res) => {
   }
 });
 
-router.get('/cart-remove', async (req, res) => {
-  res.send("cart remove")
+
+router.post('/remove-from-cart', async (req, res) => { 
+  console.log("Entered remove cart route");
+
+  if (!req.session.user) {
+    console.log("User not logged in. Redirecting to login.");
+    return res.redirect('/login');
+  }
+
+  const userId = req.session.user._id;
+  const productId = req.body.productId;  // Product ID sent from frontend
+  console.log("Received productId:", productId);
+
+  // Check if productId is valid (24-character hex string)
+  if (productId && productId.length === 24) {
+    console.log("Valid productId format");
+
+    try {
+      // Convert productId to ObjectId if valid
+      const objectIdProduct = new ObjectId(productId);
+
+      // Find the product details to log the product name
+      const productDetails = await db
+        .get()
+        .collection(collection.PRODUCT_COLLECTION)  // Assuming your products are in this collection
+        .findOne({ _id: objectIdProduct });
+
+      if (productDetails) {
+        console.log("Removing product:", productDetails.productName);  // Log product name
+      } else {
+        console.log("Product not found in the database.");
+      }
+
+      // Remove product from cart using ObjectId
+      const cart = await db
+        .get()
+        .collection(collection.CART_COLLECTION)
+        .updateOne(
+          { userId: userId },
+          { $pull: { products: { productId: objectIdProduct } } }
+        );
+
+      console.log("Cart updated:", cart);
+
+      // Fetch the updated cart and render it
+      const updatedCart = await cartHelpers.getCartDetailsUsingId(userId);
+      res.render('user/cart', {
+        user: req.session.user,
+        cartItems: updatedCart.products,
+        totalPrice: updatedCart.totalPrice,
+        admin: false,
+        message: 'Product removed from cart'
+      });
+
+    } catch (error) {
+      console.error("Error removing product from cart:", error);
+      res.status(500).send("Error removing product from cart");
+    }
+
+  } else {
+    console.log("Invalid productId format:", productId);
+    res.status(400).send("Invalid productId");
+  }
 });
+
+
+
+
+
+
 
 
 
@@ -397,43 +513,47 @@ router.get('/cart-remove', async (req, res) => {
 // });
 
 
-
 router.get('/each-product/:id', async (req, res) => {
-  console.log(req.body)
+  console.log("Incoming request body:", req.body);
+  
   try {
     const productId = req.params.id;
-    console.log("each productid"+productId);
+    console.log("Fetching product with ID:", productId);
 
-    // Validate Product ID format
+    // Validate Product ID
     if (!mongoose.Types.ObjectId.isValid(productId)) {
       return res.status(400).send('Invalid Product ID');
     }
 
     const product = await productHelpers.getProductById(productId);
 
-    if (product) {
-      const user = req.session.user || req.user;
-      const successMessage = req.session.successMessage || null;
-      req.session.successMessage = null; // Clear message after use
-
-      res.render('user/each-product', {
-        product,
-        user,
-        successMessage,
-        admin: false,
-        productId: productId,
-      });
-    } else {
-      res.status(404).render('user/not-found', {
+    if (!product) {
+      return res.status(404).render('user/not-found', {
         message: 'Product not found!',
         user: req.session.user || null,
       });
     }
+
+    // Ensure isActive is a boolean
+    product.isActive = Boolean(product.isActive);
+
+    const user = req.session.user || req.user;
+    const successMessage = req.session.successMessage || null;
+    req.session.successMessage = null; // Clear message after use
+
+    res.render('user/each-product', {
+      product,
+      user,
+      successMessage,
+      admin: false,
+      productId,
+    });
   } catch (error) {
     console.error(`Error fetching product with ID ${req.params.id}:`, error);
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 router.get('/buy/:productId', async (req, res) => {
   try {
@@ -696,6 +816,18 @@ router.post('/confirmed', async (req, res) => {
 
     console.log('Product quantity updated successfully.');
 
+    // Check if the updated quantity is 0 and update product status to inactive
+    const updatedProduct = await productHelpers.getProductById(productId);
+    if (updatedProduct.quantity === 0) {
+      await db.get()
+        .collection(collection.PRODUCT_COLLECTION)
+        .updateOne(
+          { _id: new ObjectId(productId) },
+          { $set: { isActive: false } }  // Set product as inactive
+        );
+      console.log(`Product ID ${productId} marked as inactive due to zero stock.`);
+    }
+
     // Pass the order details to the confirmed view
     res.render('user/confirmed', {
       productName: product.name || productName,
@@ -713,6 +845,7 @@ router.post('/confirmed', async (req, res) => {
     res.status(500).send('An error occurred while confirming the order.');
   }
 });
+
 
 
 
