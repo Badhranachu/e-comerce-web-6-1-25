@@ -1,0 +1,77 @@
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Order Confirmed</h1>
+
+    {{#if message}}
+        <div class="alert alert-success text-center">{{message}}</div>
+    {{/if}}
+
+    {{#if cartItems.length}}
+        <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Product ID</th>
+                        <th>Product Name</th>
+                        <th>Original Price</th>
+                        <th>Quantity</th>
+                        <th>Total Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each cartItems}}
+                        <tr>
+                            <td>{{this.productId}}</td>
+                            <td>{{this.productName}}</td>
+                            <td>₹{{this.originalPrice}}</td>
+                            <td>{{this.quantity}}</td>
+                            <td>₹{{this.totalPrice}}</td>
+                        </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <h3 class="fw-bold">Grand Total: ₹{{grandTotal}}</h3>
+        </div>
+
+    {{else}}
+        <div class="alert alert-warning text-center mt-4">
+            <p>Your cart is empty. Please add items to your cart before confirming the order.</p>
+        </div>
+    {{/if}}
+
+    <div class="text-center mt-4">
+        <a href="/" class="btn btn-primary">Continue Shopping</a>
+    </div>
+</div>
+
+
+<style>
+    /* Custom Styles */
+.container {
+    max-width: 900px;
+    margin-top: 50px;
+}
+
+.table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.table th, .table td {
+    padding: 15px;
+    text-align: center;
+}
+
+.table th {
+    background-color: #343a40;
+    color: white;
+}
+
+.alert {
+    font-size: 1.2em;
+    margin-top: 20px;
+}
+
+</style>

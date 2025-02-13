@@ -1,154 +1,164 @@
 <div class="container mt-5">
-  <h2 class="text-center mb-4">Your Cart</h2>
-  
-  <!-- Show the message if present -->
-  {{#if message}}
-    <div class="alert alert-info">{{message}}</div>
-  {{/if}}
+    <h1 class="text-center mb-4">Your Shopping Cart</h1>
 
-  <div class="table-responsive">
-    {{#if cartItems.length}}
-    <table class="table table-striped table-bordered table-hover text-center">
-      <thead class="thead-dark">
-        <tr>
-          <th scope="col">Image</th>
-          <th scope="col">Name</th>
-          <th scope="col">Quantity</th>
-          <th scope="col">Price</th>
-          <th scope="col">Total</th>
-          <th scope="col">Remove</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each cartItems}}
-        <tr data-product-id="{{this._id}}" data-price="{{this.price}}">
-          <td>
-            <img src="{{this.imagePath}}" alt="{{this.productName}}" class="cart-product-image img-thumbnail" />
-          </td>
-          <td>{{this.productName}}</td>
-          <td>
-            <div class="input-group quantity-group">
-              <button class="btn btn-sm btn-outline-secondary decrement-btn" type="button">-</button>
-              <input type="number" value="{{this.quantity}}" min="1" class="form-control quantity-input text-center" />
-              <button class="btn btn-sm btn-outline-secondary increment-btn" type="button">+</button>
-            </div>
-          </td>
-          <td>₹{{this.price}}</td>
-          <td class="product-total">₹{{this.total}}</td>
-          <td>
-            <!-- Remove button -->
-            <form action="/remove-from-cart" method="POST" class="remove-item-form">
-              <input type="hidden" name="productId" value="{{this._id}}">
-<button class="btn btn-danger remove-btn" data-product-id="{{this._id}}">Remove</button>
-            </form>
-          </td>
-        </tr>
-        {{/each}}
-      </tbody>
-      <tfoot>
-        <tr class="table-primary">
-          <td colspan="4" class="text-right"><strong>Total Price</strong></td>
-          <td colspan="2" id="grandTotal">₹{{totalPrice}}</td>
-        </tr>
-      </tfoot>
-    </table>
-
-    <!-- Proceed to Payment Button -->
-    <div class="text-right mt-4">
-      <form action="/payment" method="POST">
-        <input type="hidden" name="cartDetails" id="cartDetailsInput" />
-        <button type="submit" class="btn btn-primary btn-lg">Proceed to Payment</button>
-      </form>
-    </div>
-    {{else}}
-    <!-- Message when no items are in the cart -->
-    <div class="text-center mt-5">
-      <h4>Your cart is empty. Add items to your cart to proceed.</h4>
-      <a href="/" class="btn btn-primary mt-3">Go Shopping</a>
-    </div>
+    {{#if message}}
+        <div class="alert alert-success text-center">{{message}}</div>
     {{/if}}
-  </div>
+
+    {{#if cartItems.length}}
+        <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Image</th>
+                        <th>Product</th>
+                        <th>Original Price</th>
+                        <th>Quantity</th>
+                        <th>Total Price</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each cartItems}}
+                        <tr data-product-id="{{this._id}}" data-original-price="{{this.price}}">
+                            <td><img src="{{this.image}}" alt="{{this.name}}" class="img-fluid" style="width: 50px;"></td>
+                            <td class="product-name">{{this.name}}</td>
+                            <td>₹{{this.price}}</td>
+                            <td>
+                                <div class="d-flex justify-content-center align-items-center">
+                                    <button class="btn btn-sm btn-outline-secondary decrease-qty">-</button>
+                                    <input type="number" class="form-control quantity-input text-center mx-2" value="{{this.quantity}}" min="1" style="width: 50px;">
+                                    <button class="btn btn-sm btn-outline-secondary increase-qty">+</button>
+                                </div>
+                            </td>
+                            <td class="total-price">₹{{this.total}}</td>
+                            <td>
+                                <form action="/removefromcart" method="POST">
+                                    <input type="hidden" name="productId" value="{{this._id}}">
+                                    <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <h3 class="fw-bold">Grand Total: <span id="grand-total">{{totalPrice}}</span></h3>
+
+            <form id="checkout-form" action="/confirm-cart" method="POST">
+                <input type="hidden" name="cartData" id="cart-data">
+                <input type="hidden" name="grandTotal" id="grand-total-input">
+                <button type="submit" class="btn btn-primary btn-lg">Proceed to Checkout</button>
+            </form>
+        </div>
+
+    {{else}}
+        <div class="alert alert-warning text-center mt-4">
+            <p>Your cart is empty. Start shopping now!</p>
+        </div>
+    {{/if}}
 </div>
 
-<style>
-  /* Custom Styles */
-  .cart-product-image {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-  }
-
-  .quantity-group {
-    width: 120px;
-    margin: auto;
-  }
-
-  .quantity-input {
-    width: 60px;
-  }
-
-  .product-total {
-    font-weight: bold;
-  }
-
-  .table th, .table td {
-    vertical-align: middle;
-  }
-
-  tfoot td {
-    font-size: 1.2em;
-    font-weight: bold;
-  }
-
-  .btn-lg {
-    padding: 12px 24px;
-    font-size: 18px;
-  }
-
-  .text-center h4 {
-    color: #ff6f61;
-  }
-
-  .text-center a {
-    text-decoration: none;
-  }
-
-  .text-right .btn-primary {
-    width: 200px;
-    font-size: 18px;
-    padding: 10px 20px;
-  }
-
-  .table-primary {
-    background-color: #f8f9fa;
-  }
-
-  /* Custom styling for Remove button */
-  .btn-danger {
-    background-color: #dc3545;
-    border-color: #dc3545;
-  }
-
-  .btn-danger:hover {
-    background-color: #c82333;
-    border-color: #bd2130;
-  }
-</style>
-
 <script>
-  $('.remove-btn').click(function() {
-    const productId = $(this).data('product-id');
-    $.ajax({
-        url: '/remove-from-cart',
-        method: 'POST',
-        data: { productId: productId }, // Ensure productId is being sent
-        success: function(response) {
-            // Handle success (e.g., redirect or refresh the cart)
-        },
-        error: function(error) {
-            // Handle error
+document.addEventListener("DOMContentLoaded", function () {
+    let grandTotal = 0;
+    const cartData = [];
+
+    const updateCart = async (productId, quantity, row) => {
+        if (quantity < 1) return;
+        const originalPrice = parseFloat(row.getAttribute("data-original-price"));
+        const totalPriceElement = row.querySelector(".total-price");
+        const productName = row.querySelector(".product-name").textContent;
+
+        const newTotal = originalPrice * quantity;
+        totalPriceElement.textContent = `₹${newTotal.toFixed(2)}`;
+
+        // Update cart data
+        const productIndex = cartData.findIndex(item => item.productId === productId);
+        if (productIndex !== -1) {
+            cartData[productIndex].quantity = quantity;
+            cartData[productIndex].totalPrice = newTotal;
+        } else {
+            cartData.push({ productId, productName, originalPrice, quantity, totalPrice: newTotal });
         }
+
+        // Update grand total
+        updateGrandTotal();
+
+        // Send update request to server
+        await fetch("/updatecart", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId, quantity }),
+        });
+    };
+
+    const updateGrandTotal = () => {
+        grandTotal = cartData.reduce((sum, item) => sum + item.totalPrice, 0);
+        document.getElementById("grand-total").textContent = `₹${grandTotal.toFixed(2)}`;
+        document.getElementById("grand-total-input").value = grandTotal.toFixed(2);
+    };
+
+    // Initialize cart data on page load
+    document.querySelectorAll("tbody tr").forEach(row => {
+        const productId = row.getAttribute("data-product-id");
+        const originalPrice = parseFloat(row.getAttribute("data-original-price"));
+        const productName = row.querySelector(".product-name").textContent;
+        const input = row.querySelector(".quantity-input");
+        const totalPriceElement = row.querySelector(".total-price");
+
+        const quantity = parseInt(input.value) || 1;
+        const totalPrice = originalPrice * quantity;
+
+        totalPriceElement.textContent = `₹${totalPrice.toFixed(2)}`;
+        cartData.push({ productId, productName, originalPrice, quantity, totalPrice });
+
+        grandTotal += totalPrice;
+    });
+
+    document.getElementById("grand-total").textContent = `₹${grandTotal.toFixed(2)}`;
+    document.getElementById("grand-total-input").value = grandTotal.toFixed(2);
+
+    // Update quantity on button click
+    document.querySelectorAll(".increase-qty").forEach(button => {
+        button.addEventListener("click", function () {
+            const row = this.closest("tr");
+            const input = row.querySelector(".quantity-input");
+            const productId = row.getAttribute("data-product-id");
+            let quantity = parseInt(input.value) + 1;
+            input.value = quantity;
+            updateCart(productId, quantity, row);
+        });
+    });
+
+    document.querySelectorAll(".decrease-qty").forEach(button => {
+        button.addEventListener("click", function () {
+            const row = this.closest("tr");
+            const input = row.querySelector(".quantity-input");
+            const productId = row.getAttribute("data-product-id");
+            let quantity = parseInt(input.value) - 1;
+            if (quantity >= 1) {
+                input.value = quantity;
+                updateCart(productId, quantity, row);
+            }
+        });
+    });
+
+    document.querySelectorAll(".quantity-input").forEach(input => {
+        input.addEventListener("change", function () {
+            const row = this.closest("tr");
+            const productId = row.getAttribute("data-product-id");
+            const quantity = parseInt(this.value);
+            if (quantity < 1) this.value = 1;
+            updateCart(productId, this.value, row);
+        });
+    });
+
+    // Handle checkout form submission
+    document.getElementById("checkout-form").addEventListener("submit", function (event) {
+        document.getElementById("cart-data").value = JSON.stringify(cartData);
     });
 });
-
 </script>

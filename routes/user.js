@@ -11,6 +11,9 @@ const { ObjectId } = require('mongodb');
 const cartHelpers = require('../helpers/cart-helpers');
 const Order = require('../models/order'); // Import the Order model
 const moment = require('moment'); // Import moment.js
+const Product = require("../models/Product"); // Import Product model
+
+
 
 
 
@@ -29,29 +32,22 @@ function ensureAuthenticated(req, res, next) {
 // Combined route for /view-products
 router.get('/view-products', ensureAuthenticated, async (req, res) => {
   try {
-    // Fetch the logged-in user from the session
-    const user = req.session.user;
-    console.log("User from session:", user);
+    const userId = req.session.userId;
+    let products = await db.get().collection(collection.PRODUCT_COLLECTION).find().toArray();
 
-    // Fetch all products using the productHelper or directly from the database
-    const products = await db.get().collection(collection.PRODUCT_COLLECTION).find().toArray();
+    if (userId && req.session.wishlist) {
+      products = products.map(product => ({
+        ...product,
+        isWishlisted: req.session.wishlist.includes(product._id.toString()) // Check if in wishlist
+      }));
+    }
 
-    // Check for a success message or error message in the query parameters
-    const successMessage = req.query.successMessage || null;
-    const errorMessage = req.query.errorMessage || null;
-
-    // Render the view-products page with products, user data, and success/error messages
-    res.render('user/view-products', {
-      products: products,
-      user: user,
-      successMessage: successMessage,
-      errorMessage: errorMessage,
-      admin: false, // Set admin flag to false for non-admin users
-    });
+    res.render('user/view-products', { products, user: req.session.user });
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error("Error fetching products:", error);
     res.status(500).send("Internal Server Error");
   }
+  
 });
 
 // Login page
@@ -80,24 +76,41 @@ router.get('/login', async (req, res) => {
 // POST Route for Login
 router.post('/login', async (req, res) => {
   try {
-    const response = await userHelpers.doLogin(req.body); // Call doLogin
-    if (response.status) {
-      req.session.loggedIn = true;
-      req.session.user = response.user;
-      req.session.userId = response.user._id;
-      req.session.user = user;  // Store full user object
-      req.session.userId = user._id; 
+    // Authenticate User
+    const response = await userHelpers.doLogin(req.body);
 
-      console.log("Login successful:", req.session.user); // Debug session data
-
-      res.redirect('/');
+    if (!response.status) {
+      req.session.loginErr = "Invalid email or password"; // Store error in session
+      return res.redirect('/login'); // Redirect back to login
     }
+
+    const user = response.user;
+
+    // Store user session
+    req.session.loggedIn = true;
+    req.session.user = user;
+    req.session.userId = user._id;
+
+    console.log("Login successful:", req.session.user); // Debugging
+
+    // Fetch user's wishlist from DB
+    const wishlist = await db.get().collection(collection.WISHLIST_COLLECTION).findOne({ userId: user._id });
+
+    if (wishlist) {
+      req.session.wishlist = wishlist.products.map(p => p.productId); // Store product IDs in session
+    } else {
+      req.session.wishlist = []; // Empty wishlist
+    }
+
+    res.redirect('/'); // Redirect after successful login
+
   } catch (error) {
     console.error("Login error:", error);
-    req.session.loginErr = error; // Store error message in session
-    res.redirect('/login'); // Redirect to login
+    req.session.loginErr = "Internal Server Error"; // Store error message in session
+    res.redirect('/login'); // Redirect to login page
   }
 });
+
 
 
 // GET Route for Homepage
@@ -281,12 +294,18 @@ router.get('/added-to-wishlist', async (req, res) => {
         { $push: { products: { productId } } }
       );
 
+      // Update the session wishlist (for toggle button state)
+      req.session.wishlist.push(productId); // Store updated wishlist in session
+
     } else {
       // Create a new wishlist for the user and add the product
       await db.get().collection(collection.WISHLIST_COLLECTION).insertOne({
         userId,
         products: [{ productId }]
       });
+
+      // Initialize session wishlist
+      req.session.wishlist = [productId]; 
     }
 
     res.json({ message: "Product added to wishlist" });
@@ -302,39 +321,29 @@ router.get('/added-to-wishlist', async (req, res) => {
 
 
 
+
 router.post('/addtocart', async (req, res) => {
   try {
-    // Fetch userId and product details from the session and request body
-    const userId = req.session.userId;  // Ensure session userId is set correctly
+    const userId = req.session.userId;
     const { productId, productName } = req.body;
 
-    // Log the userId and request body for debugging purposes
     console.log("User ID in addtocart:", userId);
-    console.log("Request Body:", req.body);
+    console.log("Product ID in addtocart:", productId);
 
-    // Check if all necessary parameters are provided
     if (!userId || !productId || !productName) {
       return res.status(400).json({ error: "User, Product ID, and product name are required" });
     }
 
-    // Call the cart helper to add the product to the user's cart
     const result = await cartHelpers.addProductToCart(userId, productId, productName);
 
-    // Check the result and redirect accordingly
+    console.log("Add to cart result:", result);
+
     if (result.alreadyInCart) {
-      return res.redirect(
-        `/view-products?successMessage=${encodeURIComponent(
-          `${result.productName} is already in your cart.`
-        )}`
-      );
+      return res.json({ successMessage: `${result.productName} is already in your cart.` });
     } else if (result.addedToCart) {
-      return res.redirect(
-        `/view-products?successMessage=${encodeURIComponent(
-          `${result.productName} added to cart successfully.`
-        )}`
-      );
+      return res.json({ successMessage: `${result.productName} added to cart successfully.` });
     } else {
-      return res.redirect('/view-products?errorMessage=Something went wrong');
+      return res.status(500).json({ error: "Something went wrong" });
     }
   } catch (error) {
     console.error('Error adding product to cart:', error);
@@ -344,120 +353,266 @@ router.post('/addtocart', async (req, res) => {
 
 
 
-
-
-// GET /cart - Display user's cart
-router.get('/cart', async (req, res) => {
-  if (!req.session.user) {
-    console.log("User not logged in. Redirecting to login.");
-    return res.redirect('/login');
-  }
-
-  const userId = req.session.user._id;
-  console.log("User ID of cart:", userId);
-
+router.get("/cart", async (req, res) => {
   try {
-    const cartDetails = await cartHelpers.getCartDetailsUsingId(userId);
-    const cartItems = cartDetails.products;
-    let totalPrice = 0;
+      const userId = req.session.userId;
+      console.log("User ID in cart:", userId);
 
-    // Enhance cartItems with product details (price, total, image path)
-    for (let item of cartItems) {
-      const product = await db
-        .get()
-        .collection(collection.PRODUCT_COLLECTION)
-        .findOne({ _id: new ObjectId(item.productId) });
-
-      if (product) {
-        item.price = product.price; // Add price
-        item.total = item.price * item.quantity; // Calculate total for product
-        item.imagePath = product.imagePath; // Add image
-        totalPrice += item.total; // Add to overall total price
-      }
-    }
-
-    console.log("Cart products:", cartItems);
-    console.log("Total price:", totalPrice);
-
-    const message = req.query.message || ''; // Get message from query string
-
-    res.render('user/cart', {
-      user: req.session.user,
-      cartItems,
-      totalPrice,
-      admin: false,
-      message, // Pass message to view
-    });
-  } catch (error) {
-    console.error("Error fetching cart details:", error);
-    res.status(500).send("Error fetching cart items");
-  }
-});
-
-
-router.post('/remove-from-cart', async (req, res) => { 
-  console.log("Entered remove cart route");
-
-  if (!req.session.user) {
-    console.log("User not logged in. Redirecting to login.");
-    return res.redirect('/login');
-  }
-
-  const userId = req.session.user._id;
-  const productId = req.body.productId;  // Product ID sent from frontend
-  console.log("Received productId:", productId);
-
-  // Check if productId is valid (24-character hex string)
-  if (productId && productId.length === 24) {
-    console.log("Valid productId format");
-
-    try {
-      // Convert productId to ObjectId if valid
-      const objectIdProduct = new ObjectId(productId);
-
-      // Find the product details to log the product name
-      const productDetails = await db
-        .get()
-        .collection(collection.PRODUCT_COLLECTION)  // Assuming your products are in this collection
-        .findOne({ _id: objectIdProduct });
-
-      if (productDetails) {
-        console.log("Removing product:", productDetails.productName);  // Log product name
-      } else {
-        console.log("Product not found in the database.");
+      if (!userId) {
+          return res.redirect("/login");
       }
 
-      // Remove product from cart using ObjectId
-      const cart = await db
-        .get()
-        .collection(collection.CART_COLLECTION)
-        .updateOne(
-          { userId: userId },
-          { $pull: { products: { productId: objectIdProduct } } }
-        );
+      // Fetch cart details
+      const cartDetails = await cartHelpers.getCartDetailsUsingId(userId);
 
-      console.log("Cart updated:", cart);
-
-      // Fetch the updated cart and render it
-      const updatedCart = await cartHelpers.getCartDetailsUsingId(userId);
-      res.render('user/cart', {
-        user: req.session.user,
-        cartItems: updatedCart.products,
-        totalPrice: updatedCart.totalPrice,
-        admin: false,
-        message: 'Product removed from cart'
+      // Calculate total for each cart item
+      cartDetails.products = cartDetails.products.map(product => {
+          product.totalPrice = product.quantity * product.price; // Add total price to each product
+          return product;
       });
 
-    } catch (error) {
-      console.error("Error removing product from cart:", error);
-      res.status(500).send("Error removing product from cart");
-    }
-
-  } else {
-    console.log("Invalid productId format:", productId);
-    res.status(400).send("Invalid productId");
+      res.render("user/cart", { cartItems: cartDetails.products, totalPrice: cartDetails.totalPrice,user:req.session.user });
+  } catch (error) {
+      console.error("Error fetching cart:", error);
+      res.status(500).send("Internal Server Error");
   }
 });
+
+
+router.post("/removefromcart", async (req, res) => {
+  console.log("Entered to remove cart");
+
+  try {
+    const userId = req.session.userId;  // Provided User ID
+    const { productId } = req.body;  // Product ID to remove
+
+    console.log("User ID:", userId);
+    console.log("Product ID in remove:", productId);
+
+    if (!userId || !productId) {
+      console.log("User ID or Product ID is missing");
+      return res.redirect("/cart?message=User ID and Product ID are required");
+    }
+
+    // Fetch the user's cart
+    const userCart = await db.get().collection(collection.CART_COLLECTION).findOne({ userId: userId });
+
+    if (!userCart) {
+      console.log("User not found in cart collection");
+      return res.redirect("/cart?message=User not found in cart");
+    }
+
+    console.log("User exists in cart collection:", userCart);
+
+    // Check if the product exists in the cart
+    const productIndex = userCart.products.findIndex(item => item.productId.toString() === productId);
+
+    if (productIndex === -1) {
+      console.log("Product not found in user's cart");
+      return res.redirect("/cart?message=Product not found in cart");
+    }
+
+    console.log("Product found in cart:", productId);
+
+    // Remove the product from the cart
+    const result = await db.get().collection(collection.CART_COLLECTION).updateOne(
+      { userId: userId },
+      { $pull: { products: { productId: productId } } }
+    );
+
+    if (result.modifiedCount > 0) {
+      console.log("Product removed successfully");
+      return res.redirect("/cart?message=Product removed successfully");
+    } else {
+      console.log("Failed to remove product");
+      return res.redirect("/cart?message=Error removing product");
+    }
+
+  } catch (error) {
+    console.error("Error removing product from cart:", error);
+    return res.redirect("/cart?message=Internal Server Error");
+  }
+});
+
+
+
+
+const orders = [];
+router.post("/confirm-cart", async (req, res) => {
+  const userId = req.session.userId;
+
+  try {
+      const { cartData, grandTotal } = req.body;
+
+      if (!cartData || !grandTotal) {
+          console.log("Cart data or grand total missing");
+          return res.status(400).json({ success: false, message: "Invalid data" });
+      }
+
+      const parsedCartData = JSON.parse(cartData);  
+      console.log("User ID in confirm cart:", userId);
+      console.log("Parsed Cart Data:", parsedCartData);
+      console.log("Grand Total:", grandTotal);
+
+      if (!Array.isArray(parsedCartData) || parsedCartData.length === 0) {
+          return res.status(400).json({ success: false, message: "Cart is empty" });
+      }
+
+      // Fetch product details using productId
+      const productDetails = await Promise.all(
+          parsedCartData.map(async (item) => {
+              const product = await Product.findById(item.productId);
+              return {
+                  productId: item.productId,  
+                  productName: item.productName,
+                  originalPrice:item.originalPrice, 
+                  quantity: item.quantity,
+                  totalPrice: item.totalPrice,  
+              };
+          })
+      );
+
+      // Render the cart bill page with all details
+      return res.render("user/cart-bill", {
+          userId,
+          cartItems: productDetails,
+          grandTotal,
+          user: req.session.user,
+      });
+
+  } catch (error) {
+      console.error("Error confirming cart:", error);
+      return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+
+
+
+router.post("/confirmed-cart", async (req, res) => {
+  try {
+    const { cartData, grandTotal } = req.body;
+
+    // Parse the cart data from JSON
+    const parsedCartData = JSON.parse(cartData);
+
+    console.log("Received Cart Data:", parsedCartData);
+    console.log("Grand Total:", grandTotal);
+
+    // Set the payment method to 'COD' since it's the only method
+    const paymentMethod = 'COD';
+
+    // Iterate over each item in the cart and save to the orders collection
+    const orderPromises = parsedCartData.map(async (item) => {
+      const { productId, productName, totalPrice, quantity } = item;
+
+      // Fetch product details using productHelpers
+      const product = await productHelpers.getProductById(productId);
+      if (!product) {
+        console.error('Product not found for ID:', productId);
+        return res.status(404).send('Product not found');
+      }
+
+      console.log('Product details fetched:', product);
+
+      // Check if there is enough quantity available
+      if (product.quantity < quantity) {
+        console.error('Not enough quantity for product ID:', productId);
+        return res.render('user/cart-confirmed', {
+          errorMessage: 'Not enough quantity available',
+          cartItems: parsedCartData,  // Send the original cart data back
+          grandTotal,
+          user: req.session.user,
+        });
+      }
+
+      // Construct the order object
+      const order = {
+        productId: new ObjectId(productId),
+        productName: product.name || productName,
+        totalPrice,
+        quantity,
+        paymentMethod,  // Always 'COD'
+        userId: req.session.user._id,
+        orderStatus: 'Pending',  // Initial status
+        orderDate: new Date(),
+        productImage: product.imagePath || `/images/products/default.jpg`,
+      };
+
+      console.log("User ID:", req.session.user._id);
+
+      // Save the order to the database
+      const orderId = await productHelpers.addOrder(order);
+
+      // Update the status to 'Confirmed' after saving the order
+      await db.get()
+        .collection(collection.ORDERS_COLLECTION)
+        .updateOne(
+          { _id: new ObjectId(orderId) },
+          { $set: { orderStatus: 'Confirmed' } }
+        );
+
+      console.log('Order status updated to Confirmed');
+
+      // Reduce the product quantity
+      const updateResult = await productHelpers.reduceProductQuantity(productId, quantity);
+      if (!updateResult) {
+        console.error('Failed to update product quantity.');
+        return res.status(500).send('Order confirmed, but quantity update failed.');
+      }
+
+      console.log('Product quantity updated successfully.');
+
+      // Check if the updated quantity is 0 and update product status to inactive
+      const updatedProduct = await productHelpers.getProductById(productId);
+      if (updatedProduct.quantity === 0) {
+        await db.get()
+          .collection(collection.PRODUCT_COLLECTION)
+          .updateOne(
+            { _id: new ObjectId(productId) },
+            { $set: { isActive: false } }
+          );
+        console.log(`Product ID ${productId} marked as inactive due to zero stock.`);
+      }
+    });
+
+    // Wait for all orders to be processed
+    await Promise.all(orderPromises);
+
+    // After processing all the orders, render the confirmation page
+    return res.render("user/cart-confirmed", {
+      cartItems: parsedCartData,
+      grandTotal,
+      message: "Your order has been confirmed! Thank you for shopping with us.",
+      user: req.session.user,
+    });
+
+  } catch (error) {
+    console.error("Error processing order:", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -845,49 +1000,6 @@ router.post('/confirmed', async (req, res) => {
     res.status(500).send('An error occurred while confirming the order.');
   }
 });
-
-
-
-
-//cart bill payment 
-router.post('/cartbill-payment', (req, res) => {
-  console.log("Cart Bill Payment Received:");
-
-  console.log("Total Price:", req.body.totalPrice);
-  console.log("Payment Method:", req.body.paymentMethod);
-
-  // Parse cartDetails if it's a JSON string
-  if (req.body.cartDetails) {
-    try {
-      const cartDetails = JSON.parse(req.body.cartDetails);
-      console.log("Cart Details:", cartDetails);
-    } catch (error) {
-      console.error("Error parsing cartDetails:", error);
-    }
-  }
-
-  // You can add more logic here to process the data or perform actions based on the cart details and total price.
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

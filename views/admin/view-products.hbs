@@ -29,7 +29,7 @@
               {{!-- <th scope="col">Status</th> --}}
               <th scope="col">Show</th>
               <th scope="col">Modify</th>
-              <th scope="col">Drop</th>
+              {{!-- <th scope="col">Drop</th> --}}
             </tr>
           </thead>
           <tbody>
@@ -65,11 +65,11 @@
               <td>
                 <a href="/admin/edit-product/{{this._id}}" class="btn btn-success" aria-label="Edit Product">Edit</a>
               </td>
-              <td>
+              {{!-- <td>
                 <a href="/admin/delete-product/{{this._id}}">
                   <button type="button" class="btn btn-danger">Delete</button>
                 </a>
-              </td>
+              </td> --}}
             </tr>
             {{/each}}
           </tbody>

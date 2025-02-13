@@ -1,48 +1,70 @@
 <div class="container mt-5">
-  <h2 class="text-center mb-4">Cart Bill</h2>
+    <h1 class="text-center mb-4">Order Confirmation</h1>
 
-  <div class="table-responsive">
-    <table class="table table-bordered text-center">
-      <thead class="thead-dark">
-        <tr>
-          <th>Product Name</th>
-          <th>Price</th>
-          <th>Quantity</th>
-          <th>Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each cartDetails}}
-        <tr>
-          <td>{{this.name}}</td>
-          <td>₹{{this.price}}</td>
-          <td>{{this.quantity}}</td>
-          <td>₹{{this.total}}</td>
-        </tr>
-        {{/each}}
-      </tbody>
-      <tfoot>
-        <tr class="table-primary">
-          <td colspan="3" class="text-right"><strong>Grand Total:</strong></td>
-          <td>₹{{totalPrice}}</td>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
+    <div class="table-responsive">
+        <table class="table table-bordered text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Product ID</th>
+                    <th>Product Name</th>
+                    <th>Original Price</th>
+                    <th>Quantity</th>
+                    <th>Total Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each cartItems}}
+                <tr>
+                    <td>{{this.productId}}</td>
+                    <td>{{this.productName}}</td>
+                    <td>₹{{this.originalPrice}}</td>
+                    <td>{{this.quantity}}</td>
+                    <td>₹{{this.totalPrice}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <h3 class="fw-bold">Grand Total: ₹{{grandTotal}}</h3>
+    </div>
+
+    <div class="text-center mt-4">
+        <form id="confirm-order-form" action="/confirmed-cart" method="POST">
+            <!-- Hidden Input Fields to Pass JSON Data -->
+            <input type="hidden" name="cartData" id="cart-data">
+            <input type="hidden" name="grandTotal" id="grand-total-input" value="{{grandTotal}}">
+
+            <button type="submit" class="btn btn-success">Confirm Order</button>
+        </form>
+    </div>
 </div>
 
-<style>
-  .container {
-    max-width: 800px;
-  }
-  table {
-    width: 100%;
-    margin: auto;
-  }
-  .text-center {
-    text-align: center;
-  }
-  .table-responsive {
-    margin-top: 20px;
-  }
-</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Array to hold cart data
+    const cartData = [];
+    let grandTotal = 0;
+
+    // Loop through the cart items and calculate total
+    {{#each cartItems}}
+    cartData.push({
+        productId: "{{this.productId}}",
+        productName: "{{this.productName}}",
+        originalPrice: parseFloat("{{this.originalPrice}}"),
+        quantity: {{this.quantity}},
+        totalPrice: parseFloat("{{this.totalPrice}}")
+    });
+    grandTotal += parseFloat("{{this.totalPrice}}");
+    {{/each}}
+
+    // Update the hidden fields with the cart data and grand total
+    document.getElementById("cart-data").value = JSON.stringify(cartData);
+    document.getElementById("grand-total-input").value = grandTotal.toFixed(2);
+
+    // Optional: If you want to check the cart data in the console
+    console.log("Cart Data:", cartData);
+    console.log("Grand Total:", grandTotal);
+});
+</script>
