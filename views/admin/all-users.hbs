@@ -5,23 +5,33 @@
       <thead class="table-dark">
         <tr>
           <th>#</th>
+          <th>Profile Image</th>
           <th>Name</th>
           <th>Email</th>
-          <th>Password</th>
+          <th>Phone Number</th>
+          <th>Address</th>
+          <th>Date Of Birth</th>
+          <th>Place</th>
         </tr>
       </thead>
       <tbody>
         {{#each users}}
         <tr>
           <td>{{@index}}</td>
+          <td>
+            <img src="{{this.imagePath}}" alt="Profile Image" width="50" height="50" class="rounded-circle">
+          </td>
           <td>{{this.Name}}</td>
           <td>{{this.Email}}</td>
-          <td>{{this.PlainPassword}}</td> <!-- Display plain password -->
+          <td>{{this.PhoneNumber}}</td>
+          <td>{{this.Address}}</td>
+          <td>{{this.DateOfBirth}}</td>
+          <td>{{this.Place}}</td>
           
         </tr>
         {{else}}
         <tr>
-          <td colspan="5" class="text-center">No users found</td>
+          <td colspan="8" class="text-center">No users found</td>
         </tr>
         {{/each}}
       </tbody>

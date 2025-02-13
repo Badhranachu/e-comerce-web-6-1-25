@@ -19,7 +19,6 @@ const Product = require("../models/Product"); // Import Product model
 
 
 
-
 // Middleware to ensure the user is authenticated (alternative name for consistency)
 function ensureAuthenticated(req, res, next) {
   if (req.session.loggedIn) {
@@ -209,20 +208,6 @@ router.get('/logout', (req, res) => {
 
 
 //this below code should in the admin.js 
-router.get("/all-users", (req, res) => {
-  userHelpers.getAllUsers()
-    .then((users) => {
-      console.log("Users with plain passwords:", users); // Debug log
-      res.render("admin/all-users", { admin: true, users }); // Pass users with plain passwords
-    })
-    .catch((error) => {
-      console.error("Error rendering users:", error);
-      res.status(500).send("Internal Server Error");
-    });
-});
-
-
-
 
 router.get('/profile', async (req, res) => {
   try {
@@ -487,60 +472,90 @@ router.post("/confirm-cart", async (req, res) => {
 });
 
 
-
 router.post("/confirmed-cart", async (req, res) => {
   try {
     const { cartData, grandTotal } = req.body;
-
-    // Parse the cart data from JSON
     const parsedCartData = JSON.parse(cartData);
 
     console.log("Received Cart Data:", parsedCartData);
     console.log("Grand Total:", grandTotal);
 
-    // Set the payment method to 'COD' since it's the only method
     const paymentMethod = 'COD';
+    const userId = req.session.user._id;
 
-    // Iterate over each item in the cart and save to the orders collection
-    const orderPromises = parsedCartData.map(async (item) => {
+    // Fetch user details (Including Address & Phone Number)
+    const user = await db.get().collection(collection.USER_COLLECTION)
+      .findOne({ _id: new ObjectId(userId) });
+
+    if (!user) {
+      console.error('User not found for ID:', userId);
+      return res.status(404).send('User not found');
+    }
+
+    console.log("User ID:", userId);
+    console.log("User Name:", user.Name);
+    console.log("User Address:", user.Address);
+    console.log("User Phone:", user.PhoneNumber);
+
+    let outOfStockItems = [];  // Array to store names of out-of-stock products
+    let availableItems = [];   // Array to store the available products
+
+    // Check if quantities are sufficient for all cart items
+    for (let item of parsedCartData) {
+      const product = await productHelpers.getProductById(item.productId);
+      if (!product) {
+        console.error('Product not found for ID:', item.productId);
+        return res.status(404).send('Product not found');
+      }
+
+      if (product.quantity < item.quantity) {
+        outOfStockItems.push(product.name);  // Add out-of-stock product name
+      } else {
+        availableItems.push(item);  // Add available product to availableItems array
+      }
+    }
+
+    // If there are out-of-stock items, return an error message
+    if (outOfStockItems.length > 0) {
+      const outOfStockMessage = `Sorry! The following products are out of stock: ${outOfStockItems.join(', ')}.`;
+      return res.render('user/cart-confirmed', {
+        errorMessage: outOfStockMessage,
+        cartItems: availableItems,
+        grandTotal,
+        user: req.session.user,
+      });
+    }
+    
+
+    // Proceed with order creation for each available item in the cart
+    const orderPromises = availableItems.map(async (item) => {
       const { productId, productName, totalPrice, quantity } = item;
 
-      // Fetch product details using productHelpers
       const product = await productHelpers.getProductById(productId);
       if (!product) {
         console.error('Product not found for ID:', productId);
         return res.status(404).send('Product not found');
       }
 
-      console.log('Product details fetched:', product);
-
-      // Check if there is enough quantity available
-      if (product.quantity < quantity) {
-        console.error('Not enough quantity for product ID:', productId);
-        return res.render('user/cart-confirmed', {
-          errorMessage: 'Not enough quantity available',
-          cartItems: parsedCartData,  // Send the original cart data back
-          grandTotal,
-          user: req.session.user,
-        });
-      }
-
-      // Construct the order object
       const order = {
         productId: new ObjectId(productId),
         productName: product.name || productName,
         totalPrice,
         quantity,
-        paymentMethod,  // Always 'COD'
-        userId: req.session.user._id,
-        orderStatus: 'Pending',  // Initial status
+        paymentMethod,
+        userId: userId,
+        userName: user.Name,
+        userAddress: user.Address,
+        userPhone: user.PhoneNumber,
+        orderStatus: 'Pending',
         orderDate: new Date(),
         productImage: product.imagePath || `/images/products/default.jpg`,
       };
 
-      console.log("User ID:", req.session.user._id);
+      console.log("Saving order with User Name:", order.userName);
+      console.log("Saving order with User Address:", order.userAddress);
+      console.log("Saving order with User Phone:", order.userPhone);
 
-      // Save the order to the database
       const orderId = await productHelpers.addOrder(order);
 
       // Update the status to 'Confirmed' after saving the order
@@ -553,7 +568,7 @@ router.post("/confirmed-cart", async (req, res) => {
 
       console.log('Order status updated to Confirmed');
 
-      // Reduce the product quantity
+      // Reduce product quantity
       const updateResult = await productHelpers.reduceProductQuantity(productId, quantity);
       if (!updateResult) {
         console.error('Failed to update product quantity.');
@@ -562,7 +577,7 @@ router.post("/confirmed-cart", async (req, res) => {
 
       console.log('Product quantity updated successfully.');
 
-      // Check if the updated quantity is 0 and update product status to inactive
+      // Mark product as inactive if quantity is 0
       const updatedProduct = await productHelpers.getProductById(productId);
       if (updatedProduct.quantity === 0) {
         await db.get()
@@ -575,12 +590,11 @@ router.post("/confirmed-cart", async (req, res) => {
       }
     });
 
-    // Wait for all orders to be processed
     await Promise.all(orderPromises);
 
-    // After processing all the orders, render the confirmation page
+    // Only send a successful response once everything is processed
     return res.render("user/cart-confirmed", {
-      cartItems: parsedCartData,
+      cartItems: availableItems,
       grandTotal,
       message: "Your order has been confirmed! Thank you for shopping with us.",
       user: req.session.user,
@@ -591,6 +605,11 @@ router.post("/confirmed-cart", async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 });
+
+
+
+
+
 
 
 
@@ -894,7 +913,24 @@ router.post('/confirm-payment', async (req, res) => {
 
 
 router.post('/confirmed', async (req, res) => {
+  console.log("Entered to the confirmed individual product");
   try {
+    const userId = req.session.user._id;
+    console.log("User ID in confirmed:", userId);
+
+    // Fetch the user details from the database
+    const user = await db.get()
+      .collection(collection.USER_COLLECTION)
+      .findOne({ _id: new ObjectId(userId) });
+
+    if (!user) {
+      console.error('User not found with ID:', userId);
+      return res.status(404).send('User not found');
+    }
+
+    console.log("User Name:", user.Name);
+    console.log("User Address:", user.Address); // ✅ Log Address
+
     const { productId, productName, totalPrice, quantity, paymentMethod } = req.body;
 
     console.log("Product ID received in /confirmed:", productId);
@@ -920,7 +956,7 @@ router.post('/confirmed', async (req, res) => {
       console.error('Not enough quantity for product ID:', productId);
       return res.render('user/confirmed', {
         errorMessage: 'Not enough quantity available',
-        availableQuantity: product.quantity, // Show available quantity
+        availableQuantity: product.quantity,
         productName: product.name || productName,
         productImage: product.imagePath || `/images/products/default.jpg`,
         quantity,
@@ -934,20 +970,24 @@ router.post('/confirmed', async (req, res) => {
     // Construct product image path
     const productImage = product.imagePath || `/images/products/default.jpg`;
 
-    // Create an order object
+    // Create an order object, adding the user's name & address
     const order = {
       productId: new ObjectId(productId),
       productName: product.name || productName,
       totalPrice,
       quantity,
       paymentMethod,
-      userId: req.session.user._id,
-      orderStatus: 'Pending',  // Initial status
+      userId: userId,
+      userName: user.Name,  // ✅ Add User Name
+      userAddress: user.Address,  // ✅ Add User Address
+      userPhone: user.PhoneNumber,  // ✅ Add User Phone
+      orderStatus: 'Pending',
       orderDate: new Date(),
       productImage,
     };
 
-    console.log("User ID:", req.session.user._id);
+    console.log("Saving order with User Name:", order.userName);
+    console.log("Saving order with User Address:", order.userAddress); // ✅ Ensure Address is stored
 
     // Save the order to the database using productHelpers
     const orderId = await productHelpers.addOrder(order);
@@ -957,7 +997,7 @@ router.post('/confirmed', async (req, res) => {
       .collection(collection.ORDERS_COLLECTION)
       .updateOne(
         { _id: new ObjectId(orderId) },
-        { $set: { orderStatus: 'Confirmed' } }  // Update status to 'Confirmed'
+        { $set: { orderStatus: 'Confirmed' } }
       );
 
     console.log('Order status updated to Confirmed');
@@ -978,7 +1018,7 @@ router.post('/confirmed', async (req, res) => {
         .collection(collection.PRODUCT_COLLECTION)
         .updateOne(
           { _id: new ObjectId(productId) },
-          { $set: { isActive: false } }  // Set product as inactive
+          { $set: { isActive: false } }
         );
       console.log(`Product ID ${productId} marked as inactive due to zero stock.`);
     }
@@ -992,7 +1032,7 @@ router.post('/confirmed', async (req, res) => {
       paymentMethod,
       product,
       user: req.session.user,
-      productId: productId // Pass productId to the view
+      productId: productId
     });
 
   } catch (error) {
@@ -1000,6 +1040,8 @@ router.post('/confirmed', async (req, res) => {
     res.status(500).send('An error occurred while confirming the order.');
   }
 });
+
+
 
 
 
@@ -1037,6 +1079,49 @@ router.get('/orders', async (req, res) => {
 });
 
 
+// POST route to add product to wishlist
+router.post('/add-to-wishlist', async (req, res) => {
+  const userId = req.session.userId;
+  const { productId, productName } = req.body;
+
+  try {
+    if (!userId || !productId) {
+      return res.status(400).json({ error: "User ID and Product ID are required" });
+    }
+
+    const wishlist = await db.get().collection(collection.WISHLIST_COLLECTION).findOne({ userId });
+
+    if (wishlist) {
+      const productExists = wishlist.products.some(product => product.productId.toString() === productId.toString());
+
+      if (productExists) {
+        return res.json({ message: "Product already in wishlist" });
+      }
+
+      await db.get().collection(collection.WISHLIST_COLLECTION).updateOne(
+        { userId },
+        { $push: { products: { productId, productName } } }
+      );
+
+      req.session.wishlist.push({ productId, productName });
+
+      return res.json({ message: "Product added to wishlist successfully!" });
+
+    } else {
+      await db.get().collection(collection.WISHLIST_COLLECTION).insertOne({
+        userId,
+        products: [{ productId, productName }]
+      });
+
+      req.session.wishlist = [{ productId, productName }];
+
+      return res.json({ message: "Product added to wishlist successfully!" });
+    }
+  } catch (error) {
+    console.error('Error adding to wishlist:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 
 
@@ -1044,6 +1129,66 @@ router.get('/orders', async (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
+
+//admin all order
+router.get('/allorders', async (req, res) => {
+  console.log("Entered to all orders");
+  try {
+    const collectionOrders = db.get().collection(collection.ORDERS_COLLECTION);
+    
+    // Fetch all orders
+    let orders = await collectionOrders.find().toArray();
+    console.log("Orders fetched from DB:", orders);
+
+    // Fetch user details and attach userName
+    for (let order of orders) {
+      if (order.userId) {
+        const user = await db.get().collection(collection.USER_COLLECTION)
+          .findOne({ _id: new ObjectId(order.userId) });
+
+        if (user) {
+          order.userName = user.Name;  // Ensure field name matches DB
+        } else {
+          order.userName = 'Unknown';
+        }
+      }
+    }
+
+    console.log("Orders with user names:", orders);
+
+    // Render the view with the updated orders
+    res.render('admin/all-orders', { admin: true, orders });
+
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).send('Error fetching orders.');
+  }
+});
+
+router.get("/all-users", (req, res) => {
+  console.log("Entered to all users");
+  db.get()
+    .collection(collection.USER_COLLECTION)
+    .find()
+    .toArray()
+    .then((users) => {
+      console.log("Users fetched from DB:", users);
+      res.render("admin/all-users", { admin: true, users });
+    })
+    .catch((error) => {
+      console.error("Error fetching users:", error);
+      res.status(500).send("Error fetching users.");
+    });
+  
+});
 
 
 

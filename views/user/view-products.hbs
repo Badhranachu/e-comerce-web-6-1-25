@@ -25,9 +25,17 @@
           <div class="card product-card">
             <img class="card-img-top" src="/product-images/{{this._id}}.jpg" alt="Product Image" onerror="this.onerror=null;this.src='/product-images/placeholder.jpg';">
             
-            <a href="#" class="btn btn-counter wishlist-btn" onclick="addToWishlist(event, this, '{{user._id}}', '{{this._id}}')">
-              <span>&#x2764;</span> Love it
-            </a>
+           <form action="/add-to-wishlist" method="POST" class="wishlist-form" id="wishlistForm-{{this._id}}">
+  <input type="hidden" name="productId" value="{{this._id}}">
+  <input type="hidden" name="productName" value="{{this.name}}">
+  <input type="hidden" name="userId" value="{{user._id}}">
+</form>
+
+<a href="javascript:void(0);" onclick="document.getElementById('wishlistForm-{{this._id}}').submit();">
+  <i class="fa-regular fa-heart fa-2xl" style="color: #f31b1b;"></i>
+</a>
+
+
             
             <div class="card-body">
               <h3 class="card-title">{{this.name}}</h3>
@@ -76,7 +84,7 @@
     overflow: hidden;
     text-align: center;
     width: 250px;
-    height: 470px;
+    height: 450px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -86,10 +94,10 @@
   }
 
   .product-card img {
-    width: 90%;
-    height: 250px;
+    width: 100%;
+    height: 260px;
     object-fit: contain;
-    padding: 10px;
+    padding: 20px;
     border-radius: 5px;
   }
 
@@ -176,6 +184,23 @@
   .wishlist-icon.active {
     color: red;
   }
+
+  .wishlist-btn {
+  display: inline-block;
+  background-color: #f44336;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.wishlist-btn:hover {
+  background-color: #d32f2f;
+}
+
+
+
 </style>
 
 </style>

@@ -39,7 +39,7 @@
         </form>
 
         <!-- Buy Now Button -->
-        <a href="/buy/{{product._id}}" style="flex: 1;">
+        <a href="/buy/{{product._id}}" style="flex: 1; text-decoration: none;">
           <button type="button" class="btn buy-now" style="width: 100%; padding: 10px; background-color: #FF5733; color: white; font-size: 16px; display: flex; align-items: center; justify-content: center;">
             ⚡ BUY NOW
           </button>
@@ -122,16 +122,16 @@
     color: #555;
     line-height: 1.5;
     margin-bottom: 20px;
-    white-space: nowrap;  /* Prevent text from wrapping */
-    overflow-x: auto;     /* Enable horizontal scroll */
-    max-width: 100%;      /* Ensure it doesn’t overflow the container */
+    white-space: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
     padding: 10px;
-    background-color: #f1f1f1; /* Optional: background color */
-    border-radius: 8px;   /* Optional: rounded corners */
+    background-color: #f1f1f1;
+    border-radius: 8px;
   }
 
   .product-description pre {
-    margin: 0; /* Remove default margin for pre element */
+    margin: 0;
   }
 
   .add-to-wishlist, .buy-now {
