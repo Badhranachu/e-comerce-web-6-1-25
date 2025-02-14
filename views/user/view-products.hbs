@@ -31,7 +31,7 @@
   <input type="hidden" name="userId" value="{{user._id}}">
 </form>
 
-<a href="javascript:void(0);" onclick="document.getElementById('wishlistForm-{{this._id}}').submit();">
+<a href="javascript:void(0);" onclick="addToWishlist('{{this._id}}', '{{this.productName}}')">
   <i class="fa-regular fa-heart fa-2xl" style="color: #f31b1b;"></i>
 </a>
 
@@ -233,3 +233,61 @@
     });
   }
 </script>
+
+<!-- Include SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  function addToWishlist(productId, productName) {
+  fetch('/add-to-wishlist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ productId, productName })
+  })
+  .then(response => response.json()) 
+  .then(data => {
+    console.log(data.message); // Log response message
+
+    // Determine icon and title based on the response message
+    let iconType = "success";
+    let alertMessage = data.message;
+
+    if (data.message.includes("already in wishlist")) {
+      iconType = "info";  // Product already in wishlist
+    } else if (data.message.includes("removed")) {
+      iconType = "warning"; // Product removed
+      alertMessage = `Removed "${productName}" from wishlist`;
+    } else {
+      alertMessage = `Added "${productName}" to wishlist`;
+    }
+
+    // Show SweetAlert2 Notification
+    Swal.fire({
+      toast: true,
+      position: "top",
+      icon: iconType,
+      title: alertMessage,
+      showConfirmButton: false,
+      timer: 2500, // Alert disappears after 2.5 seconds
+      timerProgressBar: true
+    });
+  })
+  .catch(error => {
+    console.error("Error:", error);
+    
+    // Show Error Alert
+    Swal.fire({
+      toast: true,
+      position: "top",
+      icon: "error",
+      title: "An error occurred. Please try again.",
+      showConfirmButton: false,
+      timer: 2500,
+      timerProgressBar: true
+    });
+  });
+}
+
+</script>
+
+
