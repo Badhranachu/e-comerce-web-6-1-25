@@ -76,22 +76,55 @@
     text-decoration: none;
     color: black;
   }
+  
 
-  .product-card {
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    overflow: hidden;
-    text-align: center;
-    width: 250px;
-    height: 450px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    transition: transform 0.2s ease-in-out;
-    position: relative;
-  }
+ .product-card {
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  text-align: center;
+  width: 250px;
+  height: 450px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  position: relative;
+}
+
+/* Hover Effect: Zoom + Shadow */
+.product-card:hover {
+  transform: scale(1.05); /* Slight zoom effect */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+}
+
+/* Hidden pop-up div inside card */
+.hover-popup {
+  position: absolute;
+  bottom: -50px; /* Initially hidden below the card */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.85);
+  color: white;
+  font-size: 14px;
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out, bottom 0.3s ease-in-out;
+  width: 80%;
+  text-align: center;
+}
+
+/* Show pop-up on hover */
+.product-card:hover .hover-popup {
+  opacity: 1;
+  bottom: 10px; /* Moves up into view */
+}
+
+
 
   .product-card img {
     width: 100%;
@@ -199,95 +232,106 @@
   background-color: #d32f2f;
 }
 
+/* Add to Cart Alert - Yellow/Orange Theme */
+.cart-alert {
+    background-color: #ffcc00 !important; /* Yellow */
+    color: #333 !important; /* Dark Text */
+    font-weight: bold;
+    border-radius: 10px;
+}
+
+/* Wishlist Alert - Red/Pink Theme */
+.wishlist-alert {
+    background-color: #ff4d4d !important; /* Red */
+    color: white !important;
+    font-weight: bold;
+    border-radius: 10px;
+}
 
 
 </style>
 
 </style>
-
-<script>
-  function submitAddToCart(event, form) {
-    event.preventDefault();
-    const formData = new FormData(form);
-    fetch("/addtocart", {
-      method: "POST",
-      body: formData,
-    })
-    .then(response => response.json())
-    .then(data => {
-      const messageBox = form.closest('.product-card').querySelector('.add-to-cart-message');
-      if (data.error) {
-        messageBox.textContent = data.error;
-        messageBox.style.backgroundColor = "#ff4d4d";
-      } else if (data.successMessage) {
-        messageBox.textContent = data.successMessage;
-        messageBox.style.backgroundColor = "#4CAF50";
-      }
-      messageBox.style.display = "block";
-      setTimeout(() => {
-        messageBox.style.display = "none";
-      }, 3000);
-    })
-    .catch(error => {
-      console.error("Error adding to cart:", error);
-    });
-  }
-</script>
-
 <!-- Include SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  function addToWishlist(productId, productName) {
-  fetch('/add-to-wishlist', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ productId, productName })
-  })
-  .then(response => response.json()) 
-  .then(data => {
-    console.log(data.message); // Log response message
+  // Function to display SweetAlert2 notifications with different styles
+function showAlert(iconType, alertMessage, alertType) {
+    let customClass = alertType === "cart" ? "cart-alert" : "wishlist-alert";
 
-    // Determine icon and title based on the response message
-    let iconType = "success";
-    let alertMessage = data.message;
-
-    if (data.message.includes("already in wishlist")) {
-      iconType = "info";  // Product already in wishlist
-    } else if (data.message.includes("removed")) {
-      iconType = "warning"; // Product removed
-      alertMessage = `Removed "${productName}" from wishlist`;
-    } else {
-      alertMessage = `Added "${productName}" to wishlist`;
-    }
-
-    // Show SweetAlert2 Notification
     Swal.fire({
-      toast: true,
-      position: "top",
-      icon: iconType,
-      title: alertMessage,
-      showConfirmButton: false,
-      timer: 2500, // Alert disappears after 2.5 seconds
-      timerProgressBar: true
+        toast: true,
+        position: "top",
+        icon: iconType,
+        title: alertMessage,
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+        customClass: {
+            popup: customClass // Apply different styles
+        }
     });
-  })
-  .catch(error => {
-    console.error("Error:", error);
-    
-    // Show Error Alert
-    Swal.fire({
-      toast: true,
-      position: "top",
-      icon: "error",
-      title: "An error occurred. Please try again.",
-      showConfirmButton: false,
-      timer: 2500,
-      timerProgressBar: true
+}
+
+// Add to Cart Function
+function submitAddToCart(event, form) {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    fetch("/addtocart", {
+        method: "POST",
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        let iconType = "success";
+        let alertMessage = "Added to cart successfully!";
+
+        if (data.error) {
+            iconType = "error";
+            alertMessage = data.error;
+        } else if (data.showAlert) { // If already in cart
+            iconType = "info";
+            alertMessage = data.message;
+        } else if (data.successMessage) {
+            alertMessage = data.successMessage;
+        }
+
+        showAlert(iconType, alertMessage, "cart");
+    })
+    .catch(error => {
+        console.error("Error adding to cart:", error);
+        showAlert("error", "An error occurred. Please try again.", "cart");
     });
-  });
+}
+
+// Add to Wishlist Function
+function addToWishlist(productId, productName) {
+    fetch('/add-to-wishlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, productName })
+    })
+    .then(response => response.json())
+    .then(data => {
+        let iconType = "success";
+        let alertMessage = `Added "${productName}" to wishlist`;
+
+        if (data.message.includes("already in wishlist")) {
+            iconType = "info";  
+            alertMessage = `"${productName}" is already in your wishlist`;
+        } else if (data.message.includes("removed")) {
+            iconType = "warning";  
+            alertMessage = `Removed "${productName}" from wishlist`;
+        }
+
+        showAlert(iconType, alertMessage, "wishlist");
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        showAlert("error", "An error occurred. Please try again.", "wishlist");
+    });
 }
 
 </script>
-
-

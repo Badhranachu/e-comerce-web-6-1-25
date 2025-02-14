@@ -321,8 +321,8 @@ router.get('/added-to-wishlist', async (req, res) => {
 
 
 
-  router.post('/addtocart', async (req, res) => {
-    try {
+router.post('/addtocart', async (req, res) => {
+  try {
       const userId = req.session.userId;
       const { productId, productName } = req.body;
 
@@ -330,7 +330,7 @@ router.get('/added-to-wishlist', async (req, res) => {
       console.log("Product ID in addtocart:", productId);
 
       if (!userId || !productId || !productName) {
-        return res.status(400).json({ error: "User, Product ID, and product name are required" });
+          return res.status(400).json({ error: "User, Product ID, and product name are required" });
       }
 
       const result = await cartHelpers.addProductToCart(userId, productId, productName);
@@ -338,17 +338,18 @@ router.get('/added-to-wishlist', async (req, res) => {
       console.log("Add to cart result:", result);
 
       if (result.alreadyInCart) {
-        return res.json({ showAlert: true, message: `${result.productName} is already in your cart.` });
+          return res.json({ showAlert: true, message: `"${result.productName}" is already in your cart.` });
       } else if (result.addedToCart) {
-        return res.json({ successMessage: `${result.productName} added to cart successfully.` });
+          return res.json({ successMessage: `"${result.productName}" added to cart successfully.` });
       } else {
-        return res.status(500).json({ error: "Something went wrong" });
+          return res.status(500).json({ error: "Something went wrong" });
       }
-    } catch (error) {
+  } catch (error) {
       console.error('Error adding product to cart:', error);
       res.status(500).json({ error: "Internal Server Error" });
-    }
-  });
+  }
+});
+
 
 
 
