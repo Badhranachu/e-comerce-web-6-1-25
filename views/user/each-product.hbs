@@ -29,7 +29,7 @@
     {{#if product.isActive}}
       <div class="button-group" style="display: flex; justify-content: space-between; gap: 10px; align-items: center;">
         <!-- Add to Cart Button -->
-        <form action="/addtocart" method="POST" style="flex: 1;">
+        <form id="addToCartForm" style="flex: 1;">
           <input type="hidden" name="productId" value="{{product._id}}">
           <input type="hidden" name="productName" value="{{product.name}}">
           <input type="hidden" name="userId" value="{{user._id}}">
@@ -62,6 +62,25 @@
     {{/if}}
   </div>
 </div>
+
+<!-- Bootstrap Modal for Notification -->
+<div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cartModalLabel">Cart Update</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="cartModalMessage">
+        <!-- Success message will be inserted here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- CSS Styles -->
 <style>
@@ -188,3 +207,62 @@
     color: #555;
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  document.getElementById("addToCartForm").addEventListener("submit", async function(event) {
+    event.preventDefault(); // Prevent page reload
+
+    // Extract values
+    const formData = new FormData(this);
+    const productId = formData.get("productId");
+    const productName = formData.get("productName");
+    const userId = formData.get("userId");
+
+    try {
+      const response = await fetch('/addtocart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, productName, userId })
+      });
+
+      const data = await response.json();
+
+      // Determine SweetAlert2 notification type
+      let iconType = "success";
+      let alertMessage = data.message || `Added "${productName}" to cart`;
+
+      if (data.message && data.message.includes("already in cart")) {
+        iconType = "info";  // Product already in cart
+      } else if (data.message && data.message.includes("removed")) {
+        iconType = "warning"; // Product removed from cart
+        alertMessage = `Removed "${productName}" from cart`;
+      }
+
+      // Show SweetAlert2 Notification
+      Swal.fire({
+        toast: true,
+        position: "top",
+        icon: iconType,
+        title: alertMessage,
+        showConfirmButton: false,
+        timer: 2500, // Alert disappears after 2.5 seconds
+        timerProgressBar: true
+      });
+
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+
+      // Show Error Alert
+      Swal.fire({
+        toast: true,
+        position: "top",
+        icon: "error",
+        title: "An error occurred. Please try again.",
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true
+      });
+    }
+  });
+</script>
